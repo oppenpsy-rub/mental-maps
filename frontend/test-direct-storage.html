@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Direct Storage</title>
+</head>
+<body>
+    <h1>Test Direct Storage</h1>
+    <button onclick="testDirectStorage()">Test Direct Storage</button>
+    <button onclick="checkStoredData()">Check Stored Data</button>
+    <div id="output"></div>
+
+    <script>
+        // Simulate the directDatabaseService
+        class DirectDatabaseService {
+            constructor() {
+                this.isEnabled = false;
+            }
+
+            enableDirectMode() {
+                this.isEnabled = true;
+                localStorage.setItem('use_direct_db', 'true');
+                console.log('🔧 Direct Database Mode enabled');
+            }
+
+            isDirectModeEnabled() {
+                return this.isEnabled || localStorage.getItem('use_direct_db') === 'true';
+            }
+
+            async submitResponseDirect(data) {
+                const storageKey = `direct_response_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+                const responseRecord = {
+                    id: storageKey,
+                    participantId: data.participantId,
+                    questionId: data.questionId,
+                    responseData: data.responseData,
+                    mapDrawing: data.mapDrawing,
+                    responseTimeMs: data.responseTimeMs,
+                    timestamp: new Date().toISOString(),
+                    synced: false
+                };
+
+                localStorage.setItem(storageKey, JSON.stringify(responseRecord));
+                
+                const indexKey = 'direct_responses_index';
+                const existingIndex = JSON.parse(localStorage.getItem(indexKey) || '[]');
+                existingIndex.push(storageKey);
+                localStorage.setItem(indexKey, JSON.stringify(existingIndex));
+
+                console.log('✅ Response stored locally:', storageKey);
+                
+                return {
+                    success: true,
+                    message: 'Response stored locally',
+                    responseId: storageKey
+                };
+            }
+
+            getStoredResponses() {
+                const indexKey = 'direct_responses_index';
+                const index = JSON.parse(localStorage.getItem(indexKey) || '[]');
+                
+                return index.map(key => {
+                    const stored = localStorage.getItem(key);
+                    return stored ? JSON.parse(stored) : null;
+                }).filter(Boolean);
+            }
+        }
+
+        const directDatabaseService = new DirectDatabaseService();
+
+        async function testDirectStorage() {
+            console.log('🧪 Testing direct storage...');
+            
+            directDatabaseService.enableDirectMode();
+            
+            const testData = {
+                participantId: 'test_participant_123',
+                questionId: 'test_question_456',
+                responseData: { answer: 'This is a test response' },
+                mapDrawing: { elements: [{ type: 'circle', coordinates: [0, 0] }] },
+                responseTimeMs: 5000
+            };
+
+            const result = await directDatabaseService.submitResponseDirect(testData);
+            
+            document.getElementById('output').innerHTML = `
+                <h3>Test Result:</h3>
+                <pre>${JSON.stringify(result, null, 2)}</pre>
+            `;
+            
+            console.log('Test result:', result);
+        }
+
+        function checkStoredData() {
+            const responses = directDatabaseService.getStoredResponses();
+            
+            document.getElementById('output').innerHTML = `
+                <h3>Stored Responses (${responses.length}):</h3>
+                <pre>${JSON.stringify(responses, null, 2)}</pre>
+            `;
+            
+            console.log('Stored responses:', responses);
+        }
+    </script>
+</body>
+</html>

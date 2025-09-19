@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Recovery Panel</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .panel { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .title { color: #dc3545; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; color: white; }
+        .badge.warning { background: #ffc107; }
+        .badge.error { background: #dc3545; }
+        .badge.success { background: #28a745; }
+        .button { padding: 8px 16px; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; margin-right: 8px; margin-bottom: 8px; color: white; }
+        .button.primary { background: #007bff; }
+        .button.secondary { background: #6c757d; }
+        .button.danger { background: #dc3545; }
+        .stats { display: flex; flex-wrap: wrap; margin: 16px 0; }
+        .stat-card { background: white; border: 1px solid #dee2e6; border-radius: 4px; padding: 16px; margin: 8px; text-align: center; min-width: 120px; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #007bff; }
+        .stat-label { font-size: 12px; color: #6c757d; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Mental Maps Data Recovery Panel Test</h1>
+    
+    <div class="panel">
+        <h3 class="title">
+            🚨 Data Recovery Panel
+            <span id="status-badge" class="badge error">Backend Mode</span>
+            <small id="last-update" style="margin-left: 8px; font-size: 10px;"></small>
+        </h3>
+        
+        <p>
+            This panel helps recover data when the backend is not working properly. 
+            When direct mode is enabled, responses are stored locally and can be exported for manual database import.
+        </p>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div id="stored-responses" class="stat-value">0</div>
+                <div class="stat-label">Stored Responses</div>
+            </div>
+            <div class="stat-card">
+                <div id="stored-demographics" class="stat-value">0</div>
+                <div class="stat-label">Demographic Records</div>
+            </div>
+            <div class="stat-card">
+                <div id="total-elements" class="stat-value">0</div>
+                <div class="stat-label">Drawing Elements</div>
+            </div>
+            <div class="stat-card">
+                <div id="unsynced" class="stat-value">0</div>
+                <div class="stat-label">Unsynced</div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <h4>Mode Control:</h4>
+            <button id="mode-toggle" class="button primary" onclick="toggleDirectMode()">
+                Enable Direct Mode
+            </button>
+            <button class="button primary" onclick="refreshData()">
+                Refresh Data
+            </button>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <h4>Test Actions:</h4>
+            <button class="button primary" onclick="simulateResponse()">
+                Simulate Response
+            </button>
+            <button class="button primary" onclick="simulateDemographic()">
+                Simulate Demographic
+            </button>
+            <button class="button secondary" onclick="exportJSON()">
+                Export JSON
+            </button>
+            <button class="button danger" onclick="clearAllData()">
+                Clear All Data
+            </button>
+        </div>
+
+        <div id="responses-preview" style="margin-top: 16px; display: none;">
+            <h4>Stored Responses Preview:</h4>
+            <div id="responses-list" style="max-height: 200px; overflow: auto; background: white; padding: 12px; border: 1px solid #dee2e6; border-radius: 4px;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isDirectModeEnabled = false;
+        
+        // Simulate DirectDatabaseService
+        class DirectDatabaseService {
+            constructor() {
+                this.isEnabled = localStorage.getItem('use_direct_db') === 'true';
+            }
+
+            enableDirectMode() {
+                this.isEnabled = true;
+                localStorage.setItem('use_direct_db', 'true');
+                console.log('🔧 Direct Database Mode enabled');
+            }
+
+            disableDirectMode() {
+                this.isEnabled = false;
+                localStorage.removeItem('use_direct_db');
+                console.log('✓ Direct Database Mode disabled');
+            }
+
+            isDirectModeEnabled() {
+                return this.isEnabled || localStorage.getItem('use_direct_db') === 'true';
+            }
+
+            async submitResponseDirect(data) {
+                const storageKey = `direct_response_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+                const responseRecord = {
+                    id: storageKey,
+                    participantId: data.participantId,
+                    questionId: data.questionId,
+                    responseData: data.responseData,
+                    mapDrawing: data.mapDrawing,
+                    responseTimeMs: data.responseTimeMs,
+                    timestamp: new Date().toISOString(),
+                    synced: false
+                };
+
+                localStorage.setItem(storageKey, JSON.stringify(responseRecord));
+                
+                const indexKey = 'direct_responses_index';
+                const existingIndex = JSON.parse(localStorage.getItem(indexKey) || '[]');
+                existingIndex.push(storageKey);
+                localStorage.setItem(indexKey, JSON.stringify(existingIndex));
+
+                console.log('✅ Response stored locally:', storageKey);
+                
+                return {
+                    success: true,
+                    message: 'Response stored locally',
+                    responseId: storageKey
+                };
+            }
+
+            getStoredResponses() {
+                const indexKey = 'direct_responses_index';
+                const index = JSON.parse(localStorage.getItem(indexKey) || '[]');
+                
+                return index.map(key => {
+                    const stored = localStorage.getItem(key);
+                    return stored ? JSON.parse(stored) : null;
+                }).filter(Boolean);
+            }
+
+            clearStoredResponses() {
+                const indexKey = 'direct_responses_index';
+                const index = JSON.parse(localStorage.getItem(indexKey) || '[]');
+                
+                index.forEach(key => localStorage.removeItem(key));
+                localStorage.removeItem(indexKey);
+                
+                console.log('✓ All stored responses cleared');
+            }
+        }
+
+        const directDatabaseService = new DirectDatabaseService();
+
+        function loadStoredData() {
+            // Load stored responses
+            const responses = directDatabaseService.getStoredResponses();
+            
+            // Load stored demographic data
+            const demographicIndex = JSON.parse(localStorage.getItem('demographic_data_index') || '[]');
+            const demographics = demographicIndex.map(key => {
+                const stored = localStorage.getItem(key);
+                return stored ? JSON.parse(stored) : null;
+            }).filter(Boolean);
+
+            // Update UI
+            document.getElementById('stored-responses').textContent = responses.length;
+            document.getElementById('stored-demographics').textContent = demographics.length;
+            
+            const totalElements = responses.reduce((sum, response) => {
+                return sum + (response.mapDrawing?.elements?.length || 0);
+            }, 0);
+            document.getElementById('total-elements').textContent = totalElements;
+            document.getElementById('unsynced').textContent = responses.filter(r => !r.synced).length;
+
+            // Update mode status
+            isDirectModeEnabled = directDatabaseService.isDirectModeEnabled();
+            const statusBadge = document.getElementById('status-badge');
+            const modeToggle = document.getElementById('mode-toggle');
+            
+            if (isDirectModeEnabled) {
+                statusBadge.textContent = 'Direct Mode Active';
+                statusBadge.className = 'badge warning';
+                modeToggle.textContent = 'Disable Direct Mode';
+                modeToggle.className = 'button secondary';
+            } else {
+                statusBadge.textContent = 'Backend Mode';
+                statusBadge.className = 'badge error';
+                modeToggle.textContent = 'Enable Direct Mode';
+                modeToggle.className = 'button primary';
+            }
+
+            // Update responses preview
+            const responsesPreview = document.getElementById('responses-preview');
+            const responsesList = document.getElementById('responses-list');
+            
+            if (responses.length > 0) {
+                responsesPreview.style.display = 'block';
+                responsesList.innerHTML = responses.map((response, index) => `
+                    <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #eee;">
+                        <strong>Response ${index + 1}:</strong> ${response.timestamp}<br>
+                        <small>Participant: ${response.participantId.substring(0, 8)}... | Question: ${response.questionId.substring(0, 8)}...</small>
+                        ${response.mapDrawing?.elements ? `<small> | Elements: ${response.mapDrawing.elements.length}</small>` : ''}
+                    </div>
+                `).join('');
+            } else {
+                responsesPreview.style.display = 'none';
+            }
+
+            // Update timestamp
+            document.getElementById('last-update').textContent = `Last update: ${new Date().toLocaleTimeString()}`;
+        }
+
+        function toggleDirectMode() {
+            if (isDirectModeEnabled) {
+                directDatabaseService.disableDirectMode();
+            } else {
+                directDatabaseService.enableDirectMode();
+            }
+            loadStoredData();
+        }
+
+        function refreshData() {
+            loadStoredData();
+        }
+
+        async function simulateResponse() {
+            console.log('🎭 Simulating response submission...');
+            
+            const result = await directDatabaseService.submitResponseDirect({
+                participantId: `test_participant_${Date.now()}`,
+                questionId: `test_question_${Math.random().toString(36).substring(2, 8)}`,
+                responseData: { answer: 'Simulated test response', value: Math.random() },
+                mapDrawing: { 
+                    elements: [
+                        { type: 'circle', coordinates: [46.5 + Math.random(), 6.5 + Math.random()], style: { color: 'red' } },
+                        { type: 'polygon', coordinates: [[46.5, 6.5], [46.6, 6.5], [46.6, 6.6], [46.5, 6.6]], style: { color: 'blue' } }
+                    ]
+                },
+                responseTimeMs: Math.floor(Math.random() * 10000) + 1000
+            });
+            
+            console.log('✅ Simulated response result:', result);
+            loadStoredData();
+        }
+
+        function simulateDemographic() {
+            console.log('🎭 Simulating demographic submission...');
+            
+            const participantId = `demo_participant_${Date.now()}`;
+            const demographicRecord = {
+                participantId,
+                demographicData: {
+                    age: Math.floor(Math.random() * 50) + 18,
+                    gender: ['male', 'female', 'other'][Math.floor(Math.random() * 3)],
+                    education: ['high_school', 'bachelor', 'master', 'phd'][Math.floor(Math.random() * 4)]
+                },
+                timestamp: new Date().toISOString(),
+                synced: false
+            };
+            
+            const storageKey = `demographic_${participantId}_${Date.now()}`;
+            localStorage.setItem(storageKey, JSON.stringify(demographicRecord));
+            
+            const indexKey = 'demographic_data_index';
+            const existingIndex = JSON.parse(localStorage.getItem(indexKey) || '[]');
+            existingIndex.push(storageKey);
+            localStorage.setItem(indexKey, JSON.stringify(existingIndex));
+            
+            console.log('✅ Simulated demographic stored:', storageKey);
+            loadStoredData();
+        }
+
+        function exportJSON() {
+            const responses = directDatabaseService.getStoredResponses();
+            const demographicIndex = JSON.parse(localStorage.getItem('demographic_data_index') || '[]');
+            const demographics = demographicIndex.map(key => {
+                const stored = localStorage.getItem(key);
+                return stored ? JSON.parse(stored) : null;
+            }).filter(Boolean);
+
+            const exportData = {
+                responses,
+                demographics,
+                exportedAt: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `mental-maps-data-export-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            console.log('📁 Data exported to JSON file');
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all stored data? This cannot be undone!')) {
+                directDatabaseService.clearStoredResponses();
+                
+                // Clear demographic data
+                const demographicIndex = JSON.parse(localStorage.getItem('demographic_data_index') || '[]');
+                demographicIndex.forEach(key => localStorage.removeItem(key));
+                localStorage.removeItem('demographic_data_index');
+                
+                loadStoredData();
+                console.log('🧹 All data cleared');
+            }
+        }
+
+        // Auto-refresh every 3 seconds
+        setInterval(loadStoredData, 3000);
+
+        // Initial load
+        loadStoredData();
+        console.log('🚀 Recovery Panel Test loaded');
+    </script>
+</body>
+</html>

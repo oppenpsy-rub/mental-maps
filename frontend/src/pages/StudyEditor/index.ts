@@ -1,0 +1,1 @@
+export { default as StudyEditor } from './StudyEditor';
