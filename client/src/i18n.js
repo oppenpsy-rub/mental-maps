@@ -162,6 +162,13 @@ const resources = {
       "study_manager_description": "Verwaltung Ihrer Mental Map Studien",
       "create_first_study_to_begin": "Erstellen Sie Ihre erste Studie, um zu beginnen",
       "study_unpublished_successfully": "Studie erfolgreich zurückgezogen",
+      
+      // User Management
+      "user_management": "Benutzerverwaltung",
+      "open_user_management": "Benutzerverwaltung öffnen",
+      "user_management_description": "Benutzerregistrierungen verwalten",
+      "manage_user_registrations_description": "Verwalten Sie ausstehende Benutzerregistrierungen und genehmigen Sie neue Forscher-Accounts.",
+      "go_to_user_management": "Zur Benutzerverwaltung",
       "studies": "Studien",
       "new_study": "Neue Studie",
       "create_study": "Studie erstellen",
@@ -486,6 +493,13 @@ const resources = {
       "manage_studies": "Manage Studies",
       "manage_studies_title": "Manage Studies",
       "study_management_description": "Create and manage your research studies",
+      
+      // User Management
+      "user_management": "User Management",
+      "open_user_management": "Open User Management",
+      "user_management_description": "Manage User Registrations",
+      "manage_user_registrations_description": "Manage pending user registrations and approve new researcher accounts.",
+      "go_to_user_management": "Go to User Management",
       "create_study": "Create Study",
       "creating": "Creating...",
       "created": "Created:",

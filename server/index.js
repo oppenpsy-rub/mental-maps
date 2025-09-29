@@ -1,11 +1,9 @@
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
-
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
 const multer = require('multer');
 const crypto = require('crypto');
+const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -19,25 +17,6 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 app.use(extractUserLanguage); // Add language extraction middleware
-
-// Configure Content Security Policy headers
-app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', 
-    "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-    "style-src 'self' 'unsafe-inline'; " +
-    "img-src 'self' data: blob: https://tile.openstreetmap.org https://server.arcgisonline.com; " +
-    "font-src 'self'; " +
-    "connect-src 'self'; " +
-    "media-src 'self' blob:; " +
-    "object-src 'none'; " +
-    "base-uri 'self';"
-  );
-  next();
-});
-
-// Serve static files from the React app build directory
-app.use(express.static(path.join(__dirname, '../client/build')));
 
 // Multer für Audio-Uploads
 const storage = multer.diskStorage({
@@ -100,7 +79,6 @@ async function initializeDatabase() {
       id INT AUTO_INCREMENT PRIMARY KEY,
       code VARCHAR(255) UNIQUE NOT NULL,
       study_id INT,
-      limesurvey_id VARCHAR(255),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (study_id) REFERENCES studies (id)
     )`);
@@ -226,8 +204,8 @@ app.post('/api/auth/register', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Registrierungsfehler:', error);
-    return sendLocalizedResponse(res, 500, 'error.server_error', req.userLanguage);
+    console.error('Registration error:', error);
+    return sendLocalizedResponse(res, 500, 'error.internal_server_error', req.userLanguage);
   }
 });
 
@@ -923,7 +901,6 @@ app.get('/api/export/:studyId/participants', async (req, res) => {
       `SELECT 
          p.id,
          p.code,
-         p.limesurvey_id,
          p.created_at,
          COUNT(r.id) as response_count
        FROM participants p 
@@ -936,89 +913,6 @@ app.get('/api/export/:studyId/participants', async (req, res) => {
     
     res.json(rows);
   } catch (error) {
-    return sendLocalizedResponse(res, 500, 'error.database_error', req.userLanguage);
-  }
-});
-
-// Einzelnen Teilnehmer und dessen Antworten löschen
-app.delete('/api/export/:studyId/participants/:participantId', async (req, res) => {
-  try {
-    const studyId = req.params.studyId;
-    const participantId = req.params.participantId;
-    
-    // Prüfen, ob der Teilnehmer zur angegebenen Studie gehört
-    const [participantRows] = await pool.execute(
-      'SELECT id, code FROM participants WHERE id = ? AND study_id = ?',
-      [participantId, studyId]
-    );
-    
-    if (participantRows.length === 0) {
-      return sendLocalizedResponse(res, 404, 'participant.not_found', req.userLanguage);
-    }
-    
-    const participant = participantRows[0];
-    
-    // Zuerst alle Antworten des Teilnehmers löschen
-    const [deleteResponsesResult] = await pool.execute(
-      'DELETE FROM responses WHERE participant_id = ?',
-      [participantId]
-    );
-    
-    // Dann den Teilnehmer selbst löschen
-    const [deleteParticipantResult] = await pool.execute(
-      'DELETE FROM participants WHERE id = ?',
-      [participantId]
-    );
-    
-    console.log(`✅ Teilnehmer ${participant.code} gelöscht: ${deleteResponsesResult.affectedRows} Antworten, 1 Teilnehmer`);
-    
-    res.json({
-      success: true,
-      message: `Teilnehmer ${participant.code} und ${deleteResponsesResult.affectedRows} Antworten wurden erfolgreich gelöscht`,
-      deletedResponses: deleteResponsesResult.affectedRows,
-      participantCode: participant.code
-    });
-  } catch (error) {
-    console.error('Fehler beim Löschen des Teilnehmers:', error);
-    return sendLocalizedResponse(res, 500, 'error.database_error', req.userLanguage);
-  }
-});
-
-// LimeSurvey ID für einen Teilnehmer aktualisieren
-app.put('/api/export/:studyId/participants/:participantId/limesurvey', async (req, res) => {
-  try {
-    const studyId = req.params.studyId;
-    const participantId = req.params.participantId;
-    const { limesurvey_id } = req.body;
-    
-    // Prüfen, ob der Teilnehmer zur angegebenen Studie gehört
-    const [participantRows] = await pool.execute(
-      'SELECT id, code FROM participants WHERE id = ? AND study_id = ?',
-      [participantId, studyId]
-    );
-    
-    if (participantRows.length === 0) {
-      return sendLocalizedResponse(res, 404, 'participant.not_found', req.userLanguage);
-    }
-    
-    const participant = participantRows[0];
-    
-    // LimeSurvey ID aktualisieren
-    const [updateResult] = await pool.execute(
-      'UPDATE participants SET limesurvey_id = ? WHERE id = ?',
-      [limesurvey_id || null, participantId]
-    );
-    
-    console.log(`✅ LimeSurvey ID für Teilnehmer ${participant.code} aktualisiert: ${limesurvey_id || 'null'}`);
-    
-    res.json({
-      success: true,
-      message: `LimeSurvey ID für Teilnehmer ${participant.code} wurde erfolgreich aktualisiert`,
-      participantCode: participant.code,
-      limesurvey_id: limesurvey_id || null
-    });
-  } catch (error) {
-    console.error('Fehler beim Aktualisieren der LimeSurvey ID:', error);
     return sendLocalizedResponse(res, 500, 'error.database_error', req.userLanguage);
   }
 });
@@ -1081,11 +975,6 @@ app.post('/api/studies/:id/verify-access', async (req, res) => {
   } catch (error) {
     return sendLocalizedResponse(res, 500, 'error.database_error', req.userLanguage);
   }
-});
-
-// Catch all handler: send back React's index.html file for any non-API routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/build/index.html'));
 });
 
 // Server starten

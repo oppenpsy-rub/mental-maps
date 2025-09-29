@@ -15,6 +15,9 @@ const translations = {
     'no_permission': 'Keine Berechtigung für diese Aktion',
     'user_creation_error': 'Fehler beim Erstellen des Benutzers',
     'server_error_logout': 'Serverfehler bei der Abmeldung',
+    'user_registration_pending': 'Registrierung erfolgreich. Bitte warten Sie auf die Freigabe durch den Administrator.',
+    'account_pending_approval': 'Ihr Konto wartet noch auf die Freigabe durch den Administrator.',
+    'insufficient_permissions': 'Unzureichende Berechtigungen für diese Aktion',
     
     // Study errors
     'study_not_found': 'Studie nicht gefunden',
@@ -33,6 +36,8 @@ const translations = {
     'user_created_successfully': 'Benutzer erfolgreich erstellt',
     'login_successful': 'Anmeldung erfolgreich',
     'logout_successful': 'Abmeldung erfolgreich',
+    'user_approved_successfully': 'Benutzer erfolgreich freigegeben',
+    'user_rejected_successfully': 'Benutzerregistrierung erfolgreich abgelehnt',
     
     // General errors
     'internal_server_error': 'Interner Serverfehler',
@@ -55,6 +60,9 @@ const translations = {
     'no_permission': 'No permission for this action',
     'user_creation_error': 'Error creating user',
     'server_error_logout': 'Server error during logout',
+    'user_registration_pending': 'Registration successful. Please wait for admin approval.',
+    'account_pending_approval': 'Your account is pending admin approval.',
+    'insufficient_permissions': 'Insufficient permissions for this action',
     
     // Study errors
     'study_not_found': 'Study not found',
@@ -73,6 +81,8 @@ const translations = {
     'user_created_successfully': 'User created successfully',
     'login_successful': 'Login successful',
     'logout_successful': 'Logout successful',
+    'user_approved_successfully': 'User approved successfully',
+    'user_rejected_successfully': 'User registration rejected successfully',
     
     // General errors
     'internal_server_error': 'Internal server error',

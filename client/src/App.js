@@ -7,6 +7,7 @@ import axios from 'axios';
 import StudyManagerUnified from './StudyManagerUnified';
 import Admin from './Admin';
 import PublicSurvey from './PublicSurvey';
+import UserManagement from './UserManagement';
 import { AuthProvider, useAuth } from './Auth';
 import Login from './Login';
 import Profile from './Profile';
@@ -46,6 +47,18 @@ function AudioAdminRoute() {
   }
   
   return <Admin onBack={() => navigate('/admin')} />;
+}
+
+// User Management Route Component
+function UserManagementRoute() {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  
+  if (!currentUser) {
+    return <Navigate to="/admin/login" replace />;
+  }
+  
+  return <UserManagement onBack={() => navigate('/admin')} />;
 }
 
 // Login Route Component
@@ -659,6 +672,7 @@ function App() {
           <Route path="/admin" element={<AdminRoute />} />
           <Route path="/admin/profile" element={<ProfileRoute />} />
           <Route path="/admin/audio" element={<AudioAdminRoute />} />
+          <Route path="/admin/users" element={<UserManagementRoute />} />
           
           {/* Fallback for unknown routes */}
           <Route path="*" element={<Navigate to="/" replace />} />

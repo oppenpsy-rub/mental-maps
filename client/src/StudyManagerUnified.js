@@ -591,7 +591,8 @@ function StudyManagerUnified() {
         {[
           { id: 'studies', label: t('manage_studies'), icon: '📚' },
         { id: 'published', label: t('published_studies'), icon: '🌐' },
-        { id: 'analytics', label: t('analytics_export'), icon: '📊' }
+        { id: 'analytics', label: t('analytics_export'), icon: '📊' },
+        { id: 'users', label: t('user_management'), icon: '👥' }
         ].map(tab => (
           <button
             key={tab.id}
@@ -969,6 +970,48 @@ function StudyManagerUnified() {
                 <p>{t('publish_study_to_see_here')}</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* User Management Tab */}
+      {activeTab === 'users' && (
+        <div style={{ 
+          backgroundColor: 'white',
+          padding: '30px',
+          borderRadius: '10px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+            <h2 style={{ margin: 0, color: '#333' }}>👥 {t('user_management')}</h2>
+            <button
+              onClick={() => navigate('/admin/users')}
+              style={getButtonStyle('primary')}
+            >
+              {t('open_user_management')}
+            </button>
+          </div>
+          
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '60px', 
+            color: '#6c757d',
+            backgroundColor: '#f8f9fa',
+            borderRadius: '10px',
+            border: '2px dashed #dee2e6'
+          }}>
+            <div style={{ fontSize: '3em', marginBottom: '20px' }}>👥</div>
+            <h3>{t('user_management_description')}</h3>
+            <p>{t('manage_user_registrations_description')}</p>
+            <button
+              onClick={() => navigate('/admin/users')}
+              style={{
+                ...getButtonStyle('primary'),
+                marginTop: '20px'
+              }}
+            >
+              {t('go_to_user_management')}
+            </button>
           </div>
         </div>
       )}
