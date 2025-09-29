@@ -24,9 +24,7 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
-    "i18next": "^25.5.2",
     "jsonwebtoken": "^9.0.2",
-    "react-i18next": "^16.0.0",
     "axios": "^1.12.2",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
