@@ -9,15 +9,17 @@ services:
         value: production
       - key: PORT
         value: 3003
+      # Database credentials - SET THESE IN RENDER.COM DASHBOARD
+      # DO NOT COMMIT REAL VALUES TO REPOSITORY
       - key: DB_HOST
-        value: w01f8a36.kasserver.com
+        sync: false  # Set in Render.com dashboard
       - key: DB_USER
-        value: d044ea8a
+        sync: false  # Set in Render.com dashboard  
       - key: DB_PASSWORD
-        value: 27101997pP
+        sync: false  # Set in Render.com dashboard
       - key: DB_NAME
-        value: d044ea8a
+        sync: false  # Set in Render.com dashboard
       - key: DB_PORT
         value: 3306
       - key: JWT_SECRET
-        value: 788dca68f76823c248518586c22f38de02e4bc6ef457a2f15e9c5d9b42317a81
+        sync: false  # Set in Render.com dashboard
