@@ -1,9 +1,11 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
 const multer = require('multer');
 const crypto = require('crypto');
-const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
