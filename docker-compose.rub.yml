@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # Keine lokale MySQL-Instanz - nutzt RUB-Datenbankserver
+  mentalmap:
+    build: .
+    container_name: mentalmap-tool-rub
+    ports:
+      - "3003:3003"
+    volumes:
+      # Persistente Daten
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+      # SSL-Zertifikate für RUB-Datenbankverbindung
+      - ./ssl:/app/ssl:ro
+      # Konfiguration
+      - ./config:/app/config:ro
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      # RUB MySQL Konfiguration
+      - DB_TYPE=mysql
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SSL=${DB_SSL}
+      - DB_SSL_CA_PATH=${DB_SSL_CA_PATH}
+      - DB_CONNECTION_LIMIT=${DB_CONNECTION_LIMIT}
+      - DB_TIMEOUT=${DB_TIMEOUT}
+      # Sicherheit
+      - JWT_SECRET=${JWT_SECRET}
+      - SESSION_SECRET=${SESSION_SECRET}
+      # Upload-Konfiguration
+      - UPLOAD_DIR=/app/uploads
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE}
+      # CORS
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - CORS_CREDENTIALS=${CORS_CREDENTIALS}
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL}
+      - LOG_FILE=${LOG_FILE}
+      # Institution
+      - INSTITUTION=${INSTITUTION}
+      - DEPARTMENT=${DEPARTMENT}
+      - PROJECT_NAME=${PROJECT_NAME}
+    env_file:
+      - .env.rub
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3003/api/studies', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - mentalmap-network
+
+  # Optional: Nginx Reverse Proxy für RUB-Umgebung
+  nginx:
+    image: nginx:alpine
+    container_name: mentalmap-nginx-rub
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.rub.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - mentalmap
+    restart: unless-stopped
+    networks:
+      - mentalmap-network
+
+networks:
+  mentalmap-network:
+    driver: bridge
+
+volumes:
+  uploads:
+  logs:

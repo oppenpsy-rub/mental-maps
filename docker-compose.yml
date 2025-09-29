@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mentalmap-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: mentalmap
+      MYSQL_USER: mentalmap_user
+      MYSQL_PASSWORD: your_secure_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - mentalmap-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  mentalmap:
+    build: .
+    container_name: mentalmap-tool
+    ports:
+      - "3003:3003"
+    volumes:
+      # Persistente Daten
+      - ./uploads:/app/uploads
+      # Konfiguration
+      - ./config:/app/config:ro
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - DB_TYPE=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=mentalmap_user
+      - DB_PASSWORD=your_secure_password
+      - DB_NAME=mentalmap
+      - UPLOAD_DIR=/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3003/api/studies', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - mentalmap-network
+
+  # Optional: Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: mentalmap-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - mentalmap
+    restart: unless-stopped
+    networks:
+      - mentalmap-network
+
+networks:
+  mentalmap-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  data:
+  uploads:
