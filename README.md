@@ -5,6 +5,14 @@
 [![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 
+## 🌍 Sprachen / Languages / Langues
+
+- **🇩🇪 Deutsch** (diese Datei / this file)
+- **🇺🇸 [English](README.en.md)**
+- **🇫🇷 [Français](README.fr.md)**
+
+---
+
 Ein professionelles, webbasiertes Tool für linguistische Perzeptionsstudien mit interaktiven Kartenzeichnungen und Audio-Wahrnehmungsforschung.
 
 ## 🎓 Entwickelt an der Ruhr-Universität Bochum

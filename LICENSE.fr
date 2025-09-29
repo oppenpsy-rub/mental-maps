@@ -1,0 +1,50 @@
+LICENCE DE RECHERCHE PERSONNALISÉE
+
+Copyright (c) 2025 Université de la Ruhr Bochum - MentalMap-Tool
+Développé par : Philip Oppenländer
+
+CONDITIONS D'UTILISATION :
+
+1. UTILISATION AUTORISÉE :
+   - Consultation et étude du code source à des fins éducatives et de recherche
+   - Utilisation pour la recherche académique non commerciale dans les universités (veuillez nous informer de votre utilisation de l'outil également dans ces cas)
+   - Citation dans les publications scientifiques
+
+2. UTILISATION RESTREINTE :
+   - Toute autre utilisation, modification, distribution ou développement ultérieur 
+     nécessite l'autorisation écrite expresse de l'auteur
+   - L'utilisation commerciale est interdite sans accord préalable
+   - La redistribution du code ou des œuvres dérivées est interdite sans autorisation
+
+3. PROCÉDURE D'AUTORISATION :
+   Pour toutes les utilisations en dehors des domaines mentionnés au point 1, 
+   veuillez contacter :
+
+   Philip Oppenländer
+   E-Mail : philip.oppenlaender@rub.de
+   
+   Veuillez indiquer :
+   - Utilisation et objectif prévus
+   - Institution/Organisation
+   - Période d'utilisation
+   - Modifications prévues (le cas échéant)
+
+4. CONDITIONS :
+   - Cet avis de copyright doit être inclus dans toutes les copies ou parties 
+     substantielles du logiciel
+   - Une citation appropriée est requise pour l'utilisation scientifique
+   - L'auteur se réserve le droit de refuser l'autorisation 
+     ou d'imposer des conditions
+
+5. CLAUSE DE NON-RESPONSABILITÉ :
+   LE LOGICIEL EST FOURNI « EN L'ÉTAT », SANS AUCUNE GARANTIE, EXPRESSE 
+   OU IMPLICITE, Y COMPRIS, MAIS SANS S'Y LIMITER, LES GARANTIES DE 
+   COMMERCIALISATION, D'ADÉQUATION À UN USAGE PARTICULIER ET DE NON-VIOLATION 
+   DES DROITS DE TIERS.
+
+6. INTÉGRITÉ SCIENTIFIQUE :
+   Lors de l'utilisation de cet outil dans des projets de recherche, les utilisateurs 
+   s'engagent à respecter les normes scientifiques et les directives éthiques 
+   de leur institution.
+
+Pour les questions de licence, veuillez contacter l'auteur.
