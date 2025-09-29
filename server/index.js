@@ -18,6 +18,25 @@ app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 app.use(extractUserLanguage); // Add language extraction middleware
 
+// Configure Content Security Policy headers
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', 
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+    "style-src 'self' 'unsafe-inline'; " +
+    "img-src 'self' data: blob:; " +
+    "font-src 'self'; " +
+    "connect-src 'self'; " +
+    "media-src 'self' blob:; " +
+    "object-src 'none'; " +
+    "base-uri 'self';"
+  );
+  next();
+});
+
+// Serve static files from the React app build directory
+app.use(express.static(path.join(__dirname, '../client/build')));
+
 // Multer für Audio-Uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -975,6 +994,11 @@ app.post('/api/studies/:id/verify-access', async (req, res) => {
   } catch (error) {
     return sendLocalizedResponse(res, 500, 'error.database_error', req.userLanguage);
   }
+});
+
+// Catch all handler: send back React's index.html file for any non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/build/index.html'));
 });
 
 // Server starten
