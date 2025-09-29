@@ -423,7 +423,8 @@ function StudyManagerUnified() {
         case 'topographic':
           return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
         default:
-          return 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+          // Verwende direkten OSM-Server für bessere Kompatibilität
+          return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
       }
     };
 

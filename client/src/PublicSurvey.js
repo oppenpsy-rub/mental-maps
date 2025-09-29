@@ -21,7 +21,8 @@ const getTileLayerUrl = (basemap) => {
     case 'topographic':
       return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
     default:
-      return 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+      // Verwende mehrere OSM-Server für bessere Verfügbarkeit
+      return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   }
 };
 
@@ -613,6 +614,43 @@ function MapDrawingLayer({ onPolygonsChange, onDrawingChange, currentQuestion })
   const [polygons, setPolygons] = useState([]);
   const [points, setPoints] = useState([]);
   const [isMouseDown, setIsMouseDown] = useState(false);
+
+  // Polygone von der Karte entfernen, wenn sich die Frage ändert
+  useEffect(() => {
+    // Alle bestehenden Polygone von der Karte entfernen
+    polygons.forEach(polygon => {
+      if (map.hasLayer(polygon)) {
+        map.removeLayer(polygon);
+      }
+    });
+    
+    // Aktuellen Pfad entfernen, falls vorhanden
+    if (currentPath && map.hasLayer(currentPath)) {
+      map.removeLayer(currentPath);
+      setCurrentPath(null);
+    }
+    
+    // State zurücksetzen
+    setPolygons([]);
+    setPoints([]);
+    setIsDrawing(false);
+    setIsMouseDown(false);
+    onPolygonsChange([]);
+    onDrawingChange(false);
+    
+    // Cursor zurücksetzen
+    if (map.getContainer()) {
+      map.getContainer().style.cursor = '';
+    }
+    
+    // Karten-Navigation wieder aktivieren
+    map.dragging.enable();
+    map.scrollWheelZoom.enable();
+    map.doubleClickZoom.enable();
+    map.touchZoom.enable();
+    map.boxZoom.enable();
+    map.keyboard.enable();
+  }, [currentQuestion?.id]); // Nur ausführen, wenn sich die Fragen-ID ändert
 
   useMapEvents({
     // Mouse Events
