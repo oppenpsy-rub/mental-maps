@@ -169,6 +169,12 @@ const resources = {
       "user_management_description": "Benutzerregistrierungen verwalten",
       "manage_user_registrations_description": "Verwalten Sie ausstehende Benutzerregistrierungen und genehmigen Sie neue Forscher-Accounts.",
       "go_to_user_management": "Zur Benutzerverwaltung",
+      
+      // Admin User Management
+      "admin.user_management": "Benutzerverwaltung",
+      "admin.pending_registrations": "Ausstehende Registrierungen",
+      "admin.no_pending_registrations": "Keine ausstehenden Registrierungen vorhanden",
+      
       "studies": "Studien",
       "new_study": "Neue Studie",
       "create_study": "Studie erstellen",
@@ -500,6 +506,12 @@ const resources = {
       "user_management_description": "Manage User Registrations",
       "manage_user_registrations_description": "Manage pending user registrations and approve new researcher accounts.",
       "go_to_user_management": "Go to User Management",
+      
+      // Admin User Management
+      "admin.user_management": "User Management",
+      "admin.pending_registrations": "Pending Registrations",
+      "admin.no_pending_registrations": "No pending registrations available",
+      
       "create_study": "Create Study",
       "creating": "Creating...",
       "created": "Created:",

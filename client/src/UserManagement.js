@@ -16,7 +16,7 @@ const UserManagement = () => {
   const fetchPendingUsers = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       
       const response = await fetch('/api/admin/pending-users', {
         headers: {
@@ -42,7 +42,7 @@ const UserManagement = () => {
 
   const approveUser = async (userId, userName) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       
       const response = await fetch(`/api/admin/approve-user/${userId}`, {
         method: 'POST',
@@ -72,7 +72,7 @@ const UserManagement = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       
       const response = await fetch(`/api/admin/reject-user/${userId}`, {
         method: 'POST',
