@@ -151,10 +151,7 @@ function HomeRoute() {
       setCurrentQuestion(questions[nextIndex]);
       setPolygons([]);
     } else {
-      // Use a more user-friendly completion message instead of alert
-      const completionMessage = `${t('survey_completed')} ${t('participant_code')}: ${participantCode}`;
-      
-      // Create a custom modal instead of browser alert
+      // VORSCHAU-MODUS: Zeige Hinweis statt echten Abschluss
       const modal = document.createElement('div');
       modal.style.cssText = `
         position: fixed;
@@ -176,15 +173,15 @@ function HomeRoute() {
         border-radius: 10px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         text-align: center;
-        max-width: 400px;
+        max-width: 500px;
         width: 90%;
       `;
       
       content.innerHTML = `
-        <h2 style="color: #28a745; margin-bottom: 20px;">✅ ${t('survey_completed')}</h2>
-        <p style="margin-bottom: 20px; font-size: 16px;">${t('thank_you')}</p>
-        <p style="margin-bottom: 20px; font-weight: bold; font-size: 18px; color: #007bff;">
-          ${t('participant_code')}: ${participantCode}
+        <h2 style="color: #007bff; margin-bottom: 20px;">👁️ Preview completed</h2>
+        <p style="margin-bottom: 20px; font-size: 16px;">
+          You have completed the preview version.<br>
+          <strong>No data was saved.</strong>
         </p>
         <button id="closeModal" style="
           background: #007bff;
@@ -194,7 +191,7 @@ function HomeRoute() {
           border-radius: 5px;
           cursor: pointer;
           font-size: 16px;
-        ">OK</button>
+        ">Got it</button>
       `;
       
       modal.appendChild(content);
@@ -203,6 +200,10 @@ function HomeRoute() {
       // Close modal when clicking OK or outside
       const closeModal = () => {
         document.body.removeChild(modal);
+        // Zurück zur ersten Frage für weitere Vorschau
+        setCurrentQuestionIndex(0);
+        setCurrentQuestion(questions[0]);
+        setPolygons([]);
       };
       
       document.getElementById('closeModal').onclick = closeModal;
@@ -218,54 +219,12 @@ function HomeRoute() {
       return;
     }
 
-    // Erstelle Teilnehmer nur beim ersten Speichern von Polygonen
-    let currentParticipantCode = participantCode;
-    if (!currentParticipantCode && currentStudy) {
-      currentParticipantCode = await createParticipant(currentStudy.id);
-      setParticipantCode(currentParticipantCode); // Update the state
-    }
-
-    try {
-        console.log('Speichere Polygone:', polygons);
-        
-        const features = polygons.map((polygon, index) => {
-          try {
-            const geoJSON = polygon.toGeoJSON();
-            console.log(`Polygon ${index + 1} GeoJSON:`, geoJSON);
-            return {
-              type: "Feature",
-              properties: { id: index + 1 },
-              geometry: geoJSON
-            };
-          } catch (geoError) {
-            console.error(`Fehler beim Konvertieren von Polygon ${index + 1}:`, geoError);
-            // Fallback: Verwende die Koordinaten direkt
-            const latLngs = polygon.getLatLngs()[0]; // Erste Ring für Polygon
-            return {
-              type: "Feature",
-              properties: { id: index + 1 },
-              geometry: {
-                type: "Polygon",
-                coordinates: [latLngs.map(latlng => [latlng.lng, latlng.lat])]
-              }
-            };
-          }
-        });
-
-        await axios.post('/api/responses', {
-          participantId: currentParticipantCode,
-          questionId: currentQuestion.id,
-          geometry: {
-            type: "FeatureCollection",
-            features: features
-          }
-        });
-      
-      handleNextQuestion();
-    } catch (error) {
-      console.error('Fehler beim Speichern:', error);
-      alert(t('save_error'));
-    }
+    // VORSCHAU-MODUS: Keine echten Antworten speichern auf der Startseite
+    console.log('VORSCHAU-MODUS: Polygone würden gespeichert werden:', polygons.length);
+    alert(`Only preview to showcase the functionality - No real data is saved\n${polygons.length} polygon(s) drawn.`);
+    
+    // Zur nächsten Frage wechseln ohne zu speichern
+    handleNextQuestion();
   };
 
   const handleDeletePolygons = () => {

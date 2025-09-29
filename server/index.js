@@ -26,7 +26,7 @@ app.use((req, res, next) => {
     "default-src 'self'; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
     "style-src 'self' 'unsafe-inline'; " +
-    "img-src 'self' data: blob:; " +
+    "img-src 'self' data: blob: https://tile.openstreetmap.org https://server.arcgisonline.com; " +
     "font-src 'self'; " +
     "connect-src 'self'; " +
     "media-src 'self' blob:; " +
