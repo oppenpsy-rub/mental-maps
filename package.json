@@ -4,6 +4,7 @@
   "description": "Mental Map Tool - Prototype for linguistic perception mapping",
   "main": "server/index.js",
   "scripts": {
+    "start": "node server/index.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd server && npm run dev",
     "client": "cd client && npm start",
