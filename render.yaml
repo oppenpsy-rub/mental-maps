@@ -2,7 +2,14 @@ services:
   - type: web
     name: mentalmap-tool
     env: node
-    buildCommand: npm install && cd client && npm install && npm run build && cd ..
+    buildCommand: |
+      npm install
+      cd client
+      npm install
+      npm run build
+      cd ..
+      ls -la client/
+      ls -la client/build/ || echo "Build directory not found"
     startCommand: npm start
     envVars:
       - key: NODE_ENV
