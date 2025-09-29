@@ -100,6 +100,7 @@ async function initializeDatabase() {
       id INT AUTO_INCREMENT PRIMARY KEY,
       code VARCHAR(255) UNIQUE NOT NULL,
       study_id INT,
+      limesurvey_id VARCHAR(255),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (study_id) REFERENCES studies (id)
     )`);
@@ -922,6 +923,7 @@ app.get('/api/export/:studyId/participants', async (req, res) => {
       `SELECT 
          p.id,
          p.code,
+         p.limesurvey_id,
          p.created_at,
          COUNT(r.id) as response_count
        FROM participants p 
@@ -978,6 +980,45 @@ app.delete('/api/export/:studyId/participants/:participantId', async (req, res) 
     });
   } catch (error) {
     console.error('Fehler beim Löschen des Teilnehmers:', error);
+    return sendLocalizedResponse(res, 500, 'error.database_error', req.userLanguage);
+  }
+});
+
+// LimeSurvey ID für einen Teilnehmer aktualisieren
+app.put('/api/export/:studyId/participants/:participantId/limesurvey', async (req, res) => {
+  try {
+    const studyId = req.params.studyId;
+    const participantId = req.params.participantId;
+    const { limesurvey_id } = req.body;
+    
+    // Prüfen, ob der Teilnehmer zur angegebenen Studie gehört
+    const [participantRows] = await pool.execute(
+      'SELECT id, code FROM participants WHERE id = ? AND study_id = ?',
+      [participantId, studyId]
+    );
+    
+    if (participantRows.length === 0) {
+      return sendLocalizedResponse(res, 404, 'participant.not_found', req.userLanguage);
+    }
+    
+    const participant = participantRows[0];
+    
+    // LimeSurvey ID aktualisieren
+    const [updateResult] = await pool.execute(
+      'UPDATE participants SET limesurvey_id = ? WHERE id = ?',
+      [limesurvey_id || null, participantId]
+    );
+    
+    console.log(`✅ LimeSurvey ID für Teilnehmer ${participant.code} aktualisiert: ${limesurvey_id || 'null'}`);
+    
+    res.json({
+      success: true,
+      message: `LimeSurvey ID für Teilnehmer ${participant.code} wurde erfolgreich aktualisiert`,
+      participantCode: participant.code,
+      limesurvey_id: limesurvey_id || null
+    });
+  } catch (error) {
+    console.error('Fehler beim Aktualisieren der LimeSurvey ID:', error);
     return sendLocalizedResponse(res, 500, 'error.database_error', req.userLanguage);
   }
 });

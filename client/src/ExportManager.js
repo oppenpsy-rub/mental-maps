@@ -9,6 +9,8 @@ function ExportManager({ studyId, studyName, onBack }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [showQGISGuide, setShowQGISGuide] = useState(false);
+  const [editingLimeSurveyId, setEditingLimeSurveyId] = useState(null);
+  const [limeSurveyIdInput, setLimeSurveyIdInput] = useState('');
 
   const loadSummary = useCallback(async () => {
     try {
@@ -120,6 +122,41 @@ function ExportManager({ studyId, studyName, onBack }) {
     }).catch(() => {
       setMessage(t('error_copying_codes'));
     });
+  };
+
+  const updateLimeSurveyId = async (participantId, participantCode, newLimeSurveyId) => {
+    setLoading(true);
+    try {
+      const response = await axios.put(`/api/export/${studyId}/participants/${participantId}/limesurvey`, {
+        limesurvey_id: newLimeSurveyId
+      });
+      
+      if (response.data.success) {
+        setMessage(t('limesurvey_id_updated_successfully', { participant: participantCode }));
+        // Teilnehmer-Liste neu laden
+        await loadParticipants();
+        setEditingLimeSurveyId(null);
+        setLimeSurveyIdInput('');
+      }
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren der LimeSurvey ID:', error);
+      if (error.response?.status === 404) {
+        setMessage(t('participant_not_found'));
+      } else {
+        setMessage(t('error_updating_limesurvey_id'));
+      }
+    }
+    setLoading(false);
+  };
+
+  const startEditingLimeSurveyId = (participantId, currentLimeSurveyId) => {
+    setEditingLimeSurveyId(participantId);
+    setLimeSurveyIdInput(currentLimeSurveyId || '');
+  };
+
+  const cancelEditingLimeSurveyId = () => {
+    setEditingLimeSurveyId(null);
+    setLimeSurveyIdInput('');
   };
 
   const deleteParticipant = async (participantId, participantCode) => {
@@ -379,7 +416,75 @@ function ExportManager({ studyId, studyName, onBack }) {
                           {participant.code}
                         </td>
                         <td style={{ padding: '12px', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px' }}>
-                          {participant.limesurvey_id || '-'}
+                          {editingLimeSurveyId === participant.id ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <input
+                                type="text"
+                                value={limeSurveyIdInput}
+                                onChange={(e) => setLimeSurveyIdInput(e.target.value)}
+                                style={{
+                                  padding: '4px 8px',
+                                  border: '1px solid #dee2e6',
+                                  borderRadius: '4px',
+                                  fontSize: '14px',
+                                  width: '120px'
+                                }}
+                                placeholder="LimeSurvey ID"
+                                disabled={loading}
+                              />
+                              <button
+                                onClick={() => updateLimeSurveyId(participant.id, participant.code, limeSurveyIdInput)}
+                                disabled={loading}
+                                style={{
+                                  padding: '4px 8px',
+                                  backgroundColor: '#28a745',
+                                  color: 'white',
+                                  border: '1px solid #28a745',
+                                  borderRadius: '4px',
+                                  cursor: loading ? 'not-allowed' : 'pointer',
+                                  fontSize: '12px'
+                                }}
+                              >
+                                ✓
+                              </button>
+                              <button
+                                onClick={cancelEditingLimeSurveyId}
+                                disabled={loading}
+                                style={{
+                                  padding: '4px 8px',
+                                  backgroundColor: '#6c757d',
+                                  color: 'white',
+                                  border: '1px solid #6c757d',
+                                  borderRadius: '4px',
+                                  cursor: loading ? 'not-allowed' : 'pointer',
+                                  fontSize: '12px'
+                                }}
+                              >
+                                ✗
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span>{participant.limesurvey_id || '-'}</span>
+                              <button
+                                onClick={() => startEditingLimeSurveyId(participant.id, participant.limesurvey_id)}
+                                disabled={loading}
+                                style={{
+                                  padding: '2px 6px',
+                                  backgroundColor: '#007bff',
+                                  color: 'white',
+                                  border: '1px solid #007bff',
+                                  borderRadius: '4px',
+                                  cursor: loading ? 'not-allowed' : 'pointer',
+                                  fontSize: '10px',
+                                  marginLeft: '8px'
+                                }}
+                                title="LimeSurvey ID bearbeiten"
+                              >
+                                ✎
+                              </button>
+                            </div>
+                          )}
                         </td>
                         <td style={{ padding: '12px', border: 'none', borderBottom: '1px solid #dee2e6', textAlign: 'center', fontSize: '14px' }}>
                           {participant.response_count}
