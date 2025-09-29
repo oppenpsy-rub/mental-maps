@@ -122,6 +122,32 @@ function ExportManager({ studyId, studyName, onBack }) {
     });
   };
 
+  const deleteParticipant = async (participantId, participantCode) => {
+    if (!window.confirm(t('confirm_delete_participant', { participant: participantCode }))) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await axios.delete(`/api/export/${studyId}/participants/${participantId}`);
+      
+      if (response.data.success) {
+        setMessage(t('participant_deleted_successfully', { participant: participantCode }));
+        // Teilnehmer-Liste und Zusammenfassung neu laden
+        await loadParticipants();
+        await loadSummary();
+      }
+    } catch (error) {
+      console.error('Fehler beim Löschen des Teilnehmers:', error);
+      if (error.response?.status === 404) {
+        setMessage(t('participant_not_found'));
+      } else {
+        setMessage(t('error_deleting_participant'));
+      }
+    }
+    setLoading(false);
+  };
+
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
       <h1 style={{ 
@@ -343,6 +369,7 @@ function ExportManager({ studyId, studyName, onBack }) {
                       <th style={{ padding: '12px', textAlign: 'left', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px', fontWeight: '600', color: '#495057' }}>{t('responses')}</th>
                       <th style={{ padding: '12px', textAlign: 'left', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px', fontWeight: '600', color: '#495057' }}>{t('created')}</th>
                       <th style={{ padding: '12px', textAlign: 'left', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px', fontWeight: '600', color: '#495057' }}>{t('export')}</th>
+                      <th style={{ padding: '12px', textAlign: 'left', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px', fontWeight: '600', color: '#495057' }}>{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -379,6 +406,27 @@ function ExportManager({ studyId, studyName, onBack }) {
                             title={participant.response_count === 0 ? t('no_responses_available') : t('download_geojson_for_participant')}
                           >
                             GeoJSON
+                          </button>
+                        </td>
+                        <td style={{ padding: '12px', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px' }}>
+                          <button
+                            onClick={() => deleteParticipant(participant.id, participant.code)}
+                            disabled={loading}
+                            style={{
+                              padding: '6px 12px',
+                              backgroundColor: loading ? '#e9ecef' : '#dc3545',
+                              color: loading ? '#6c757d' : 'white',
+                              border: '1px solid',
+                              borderColor: loading ? '#dee2e6' : '#dc3545',
+                              borderRadius: '4px',
+                              cursor: loading ? 'not-allowed' : 'pointer',
+                              fontSize: '12px',
+                              fontWeight: '500',
+                              transition: 'all 0.2s ease'
+                            }}
+                            title={t('delete_participant')}
+                          >
+                            {t('delete')}
                           </button>
                         </td>
                       </tr>

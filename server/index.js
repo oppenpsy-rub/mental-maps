@@ -938,6 +938,50 @@ app.get('/api/export/:studyId/participants', async (req, res) => {
   }
 });
 
+// Einzelnen Teilnehmer und dessen Antworten löschen
+app.delete('/api/export/:studyId/participants/:participantId', async (req, res) => {
+  try {
+    const studyId = req.params.studyId;
+    const participantId = req.params.participantId;
+    
+    // Prüfen, ob der Teilnehmer zur angegebenen Studie gehört
+    const [participantRows] = await pool.execute(
+      'SELECT id, code FROM participants WHERE id = ? AND study_id = ?',
+      [participantId, studyId]
+    );
+    
+    if (participantRows.length === 0) {
+      return sendLocalizedResponse(res, 404, 'participant.not_found', req.userLanguage);
+    }
+    
+    const participant = participantRows[0];
+    
+    // Zuerst alle Antworten des Teilnehmers löschen
+    const [deleteResponsesResult] = await pool.execute(
+      'DELETE FROM responses WHERE participant_id = ?',
+      [participantId]
+    );
+    
+    // Dann den Teilnehmer selbst löschen
+    const [deleteParticipantResult] = await pool.execute(
+      'DELETE FROM participants WHERE id = ?',
+      [participantId]
+    );
+    
+    console.log(`✅ Teilnehmer ${participant.code} gelöscht: ${deleteResponsesResult.affectedRows} Antworten, 1 Teilnehmer`);
+    
+    res.json({
+      success: true,
+      message: `Teilnehmer ${participant.code} und ${deleteResponsesResult.affectedRows} Antworten wurden erfolgreich gelöscht`,
+      deletedResponses: deleteResponsesResult.affectedRows,
+      participantCode: participant.code
+    });
+  } catch (error) {
+    console.error('Fehler beim Löschen des Teilnehmers:', error);
+    return sendLocalizedResponse(res, 500, 'error.database_error', req.userLanguage);
+  }
+});
+
 // Öffentliche Studie abrufen (für PublicSurvey)
 app.get('/api/studies/:id/public', async (req, res) => {
   try {

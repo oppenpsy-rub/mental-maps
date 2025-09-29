@@ -206,10 +206,10 @@ function PublicSurvey({ studyId, accessCode, setAccessCode }) {
       `;
       
       content.innerHTML = `
-        <h2 style="color: #28a745; margin-bottom: 20px;">✅ Umfrage abgeschlossen!</h2>
-        <p style="margin-bottom: 20px; font-size: 16px;">{t('thank_you')}</p>
+        <h2 style="color: #28a745; margin-bottom: 20px;">✅ ${t('survey_complete')}</h2>
+        <p style="margin-bottom: 20px; font-size: 16px;">${t('thank_you')}</p>
         <p style="margin-bottom: 20px; font-weight: bold; font-size: 18px; color: #007bff;">
-          Ihr Teilnehmer-Code: ${participantCode}
+          ${t('participant_code')}: ${participantCode}
         </p>
         <button id="closeModal" style="
           background: #007bff;
