@@ -1,15 +1,15 @@
 # 🗺️ MentalMap-Tool
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Custom](https://img.shields.io/badge/License-Custom-red.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 
-Ein professionelles, webbasiertes Tool für linguistische und geografische Perzeptionsstudien mit interaktiven Kartenzeichnungen und Audio-Wahrnehmungsforschung.
+Ein professionelles, webbasiertes Tool für linguistische Perzeptionsstudien mit interaktiven Kartenzeichnungen und Audio-Wahrnehmungsforschung.
 
 ## 🎓 Entwickelt an der Ruhr-Universität Bochum
 
-Dieses Tool wurde für die Forschung in der Linguistik und kognitiven Geografie entwickelt und ermöglicht es Forschern, mentale Karten und Sprachwahrnehmung systematisch zu erfassen und zu analysieren.
+Dieses Tool wurde für die Forschung in der Linguistik entwickelt und ermöglicht es Forschern, Mental Maps systematisch zu erfassen und zu analysieren.
 
 ## ✨ Features
 
@@ -81,23 +81,25 @@ npm start
 1. **Umfrage starten**
    - Öffnen Sie http://localhost:3000
    - Teilnehmer-Code wird automatisch generiert
-   - Notieren Sie sich den Code für LimeSurvey
+   - Notieren Sie sich den Code für LimeSurvey (oder jede andere Fragebogenlösung zur Erfassung demografischer Daten und weiterer Einstellungsfragen)
 
 2. **Polygone zeichnen**
    - Klicken Sie "Zeichnen starten"
    - Halten Sie die Maus gedrückt und zeichnen Sie
-   - Lassen Sie die Maus los → Polygon wird geschlossen
-   - Wiederholen Sie für mehrere Polygone
+   - Lassen Sie die Maus los → Polygon wird ggfs. vervollständigt 
+   - Sie können mehrere Polygone zeichnen, sofern dies für die jeweilige Frage zugelassen ist
 
 3. **Einzelne Polygone löschen**
    - Fahren Sie über ein Polygon (wird rot)
    - Klicken Sie darauf zum Löschen
+   - Bei Bedarf können Sie auch alle Polygone auf einmal löschen
 
 4. **Audio-Fragen**
    - Hören Sie sich das Audio an
-   - Zeichnen Sie die vermutete Region
+   - Lesen Sie die dazugehörige Frage
+   - Zeichnen Sie die Polygone
 
-### 🔧 **Für Administratoren**
+### 🔧 **Für Administratoren / Forschende**
 
 #### **Audio-Dateien verwalten**
 1. Klicken Sie "🎵 Audio" in der Hauptansicht
@@ -108,11 +110,10 @@ npm start
 #### **Studien erstellen und verwalten**
 1. Klicken Sie "📊 Studien" in der Hauptansicht
 2. Erstellen Sie eine neue Studie oder bearbeiten Sie bestehende
-3. Fügen Sie Fragen hinzu:
-   - **Karten-Zeichnung**: Normale Polygon-Fragen
-   - **Audio-Wahrnehmung**: Fragen mit Audio-Dateien
+3. Fügen Sie Fragen hinzu
 4. Konfigurieren Sie Polygon-Limits (1, 3, 5, 10 Polygone)
 5. Speichern Sie die Studie
+6. Veröffentlichen Sie die Studie, um Teilnehmern darauf Zugriff zu gewähren
 
 #### **Daten exportieren**
 1. Wählen Sie eine Studie aus
@@ -330,7 +331,7 @@ taskkill /PID <PID> /F
 ## 🤝 Beitragen
 
 ### **Entwicklung**
-1. Fork das Repository
+1. Forken Sie das Repository
 2. Erstellen Sie einen Feature-Branch (`git checkout -b feature/AmazingFeature`)
 3. Committen Sie Ihre Änderungen (`git commit -m 'Add some AmazingFeature'`)
 4. Pushen Sie den Branch (`git push origin feature/AmazingFeature`)
@@ -345,19 +346,13 @@ Bitte verwenden Sie das Issue-Template und fügen Sie hinzu:
 
 ## 📄 Lizenz
 
-MIT License - siehe [LICENSE](LICENSE) Datei für Details.
+**Custom Research License** - siehe [LICENSE](LICENSE) Datei für Details.
 
-## 🏛️ Institutionelle Unterstützung
-
-**Ruhr-Universität Bochum**
-- Fakultät für Philologie
-- Germanistische Linguistik
-- IT.SERVICES für technische Infrastruktur
+**Wichtiger Hinweis:** Dieses Projekt verwendet eine restriktive Lizenz. Jede Nutzung, Modifikation oder Weiterentwicklung außerhalb der erlaubten Bildungs- und Forschungszwecke erfordert die ausdrückliche schriftliche Genehmigung des Urhebers. Kontaktieren Sie uns vor der Nutzung!
 
 ## 🙏 Credits
 
-- **FLOM** (Folk Linguistic Online Mapping) - Inspiration für Konzept
-- **SDATS** (Swiss German Dialects Across Time and Space) - Zeichnungsideen  
+- **FLOM & SDATS** - [Folk Linguistic Online Mapping](https://depts.washington.edu/flom/) & [Swiss German Dialects Across Time and Space](https://www.sdats.ch/) - Inspiration für Konzept und mögliche Funktionsweise des Zeichnens
 - **OpenStreetMap** - Karten-Daten
 - **Leaflet** - Karten-Bibliothek
 - **React** - Frontend-Framework
@@ -367,13 +362,8 @@ MIT License - siehe [LICENSE](LICENSE) Datei für Details.
 
 **Technischer Support:**
 - GitHub Issues: [Probleme melden](https://github.com/oppenpsy-rub/mental-maps/issues)
-- E-Mail: [Kontakt über RUB](mailto:it-services@rub.de)
-
-**Forschungskooperationen:**
-- Ruhr-Universität Bochum
-- Fakultät für Philologie
-- Germanistische Linguistik
+- E-Mail: [Philip Oppenländer](mailto:philip.oppenlaender@rub.de)
 
 ---
 
-**Entwickelt mit ❤️ an der Ruhr-Universität Bochum für die linguistische Forschungsgemeinschaft**
+**Entwickelt mit ❤️ am [Romanischen Seminar der Ruhr-Universität Bochum](https://www.romanistik.rub.de) für die linguistische Forschungsgemeinschaft**
