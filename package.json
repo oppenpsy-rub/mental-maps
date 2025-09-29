@@ -8,7 +8,7 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd server && npm run dev",
     "client": "cd client && npm start",
-    "build": "npm install && cd server && npm install && cd ../client && npm install && npm run build",
+    "build": "npm install && cd client && npm install && npm run build",
     "install-all": "npm install && cd server && npm install && cd ../client && npm install"
   },
   "keywords": [
@@ -26,6 +26,15 @@
     "bcryptjs": "^3.0.2",
     "i18next": "^25.5.2",
     "jsonwebtoken": "^9.0.2",
-    "react-i18next": "^16.0.0"
+    "react-i18next": "^16.0.0",
+    "axios": "^1.12.2",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^17.2.2",
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.15.1",
+    "sqlite3": "^5.1.7",
+    "uuid": "^9.0.0"
   }
 }
