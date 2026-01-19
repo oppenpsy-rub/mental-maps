@@ -110,10 +110,18 @@ async function initializeDatabase() {
       participant_id INT,
       question_id VARCHAR(255),
       geometry LONGTEXT,
+      answer_data LONGTEXT,
       audio_file VARCHAR(255),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (participant_id) REFERENCES participants (id)
     )`);
+    
+    // Add answer_data column to existing responses table if it doesn't exist
+    try {
+      await connection.execute(`ALTER TABLE responses ADD COLUMN answer_data LONGTEXT`);
+    } catch (error) {
+      // Column already exists, ignore error
+    }
     
     await connection.execute(`CREATE TABLE IF NOT EXISTS users (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -606,10 +614,11 @@ app.post('/api/responses', async (req, res) => {
       questionId: req.body.questionId,
       geometryType: typeof req.body.geometry,
       geometryKeys: req.body.geometry ? Object.keys(req.body.geometry) : 'null',
-      audioFile: req.body.audioFile
+      audioFile: req.body.audioFile,
+      hasAnswerData: !!req.body.answerData
     });
     
-    const { participantId, questionId, geometry, audioFile } = req.body;
+    const { participantId, questionId, geometry, audioFile, answerData } = req.body;
     
     // Validierung der erforderlichen Felder
     if (!participantId || !questionId) {
@@ -639,43 +648,41 @@ app.post('/api/responses', async (req, res) => {
     
     // Geometry-Daten validieren und stringifizieren
     let geometryString = null;
-    try {
-      geometryString = geometry ? JSON.stringify(geometry) : null;
-      console.log('✅ Geometry erfolgreich stringifiziert, Länge:', geometryString ? geometryString.length : 0);
-    } catch (stringifyError) {
-      console.error('❌ Fehler beim Stringifizieren der Geometry:', stringifyError);
-      return sendLocalizedResponse(res, 400, 'error.invalid_geometry_data', req.userLanguage);
+    if (geometry) {
+      geometryString = typeof geometry === 'string' ? geometry : JSON.stringify(geometry);
     }
     
-    // AudioFile Parameter sicherstellen (null statt undefined)
-    const audioFileParam = audioFile || null;
+    // Answer-Daten stringifizieren falls notwendig
+    let answerDataString = null;
+    if (answerData) {
+      answerDataString = typeof answerData === 'string' ? answerData : JSON.stringify(answerData);
+    }
     
-    console.log('💾 Speichere in Datenbank mit Parametern:', {
-      participantDbId,
-      questionId,
-      geometryString: geometryString ? 'vorhanden' : 'null',
-      audioFileParam: audioFileParam ? 'vorhanden' : 'null'
-    });
-    
-    const [result] = await pool.execute(
-      'INSERT INTO responses (participant_id, question_id, geometry, audio_file) VALUES (?, ?, ?, ?)',
-      [participantDbId, questionId, geometryString, audioFileParam]
+    // Prüfen ob bereits eine Antwort für diesen Teilnehmer und diese Frage existiert
+    // und falls ja, diese aktualisieren (für Zurück-Navigation in der Umfrage)
+    const [existingResponse] = await pool.execute(
+      'SELECT id FROM responses WHERE participant_id = ? AND question_id = ?',
+      [participantDbId, questionId]
     );
-    
-    console.log('✅ Erfolgreich gespeichert mit ID:', result.insertId);
-    return sendLocalizedResponse(res, 201, 'study.response_saved_success', req.userLanguage, { 
-      id: result.insertId 
-    });
+
+    if (existingResponse.length > 0) {
+      await pool.execute(
+        'UPDATE responses SET geometry = ?, answer_data = ?, audio_file = ? WHERE id = ?',
+        [geometryString, answerDataString, audioFile, existingResponse[0].id]
+      );
+      console.log('✅ Antwort aktualisiert:', existingResponse[0].id);
+    } else {
+      await pool.execute(
+        'INSERT INTO responses (participant_id, question_id, geometry, answer_data, audio_file) VALUES (?, ?, ?, ?, ?)',
+        [participantDbId, questionId, geometryString, answerDataString, audioFile]
+      );
+      console.log('✅ Neue Antwort gespeichert');
+    }
+
+    return sendLocalizedResponse(res, 201, 'general.response_saved_success', req.userLanguage);
   } catch (error) {
-    console.error('❌ Fehler beim Speichern der Antwort:', {
-      message: error.message,
-      code: error.code,
-      errno: error.errno,
-      sqlState: error.sqlState,
-      sqlMessage: error.sqlMessage,
-      stack: error.stack
-    });
-    return sendLocalizedResponse(res, 500, 'study.response_save_error', req.userLanguage);
+    console.error('❌ Fehler beim Speichern der Antwort:', error);
+    return sendLocalizedResponse(res, 500, 'error.response_save', req.userLanguage);
   }
 });
 
@@ -700,187 +707,229 @@ app.get('/api/responses/:participantId', async (req, res) => {
   }
 });
 
-// Export für QGIS (GeoJSON)
-app.get('/api/export/:studyId/geojson', async (req, res) => {
-  try {
-    const studyId = req.params.studyId;
-    
-    const [rows] = await pool.execute(`
-      SELECT 
-        r.geometry,
-        r.question_id,
-        r.audio_file,
-        r.created_at,
-        p.code as participant_code
-      FROM responses r
-      JOIN participants p ON r.participant_id = p.id
-      WHERE p.study_id = ?
-    `, [studyId]);
-    
-    const features = [];
-    
-    rows.forEach((row, index) => {
-      const storedGeometry = JSON.parse(row.geometry);
-      
-      // Extract polygons from the nested structure
-      if (storedGeometry.type === "FeatureCollection" && storedGeometry.features) {
-        storedGeometry.features.forEach((feature, featureIndex) => {
-          let polygonGeometry = null;
-          
-          // Handle different nesting levels
-          if (feature.geometry && feature.geometry.geometry && feature.geometry.geometry.type === "Polygon") {
-            // Double nested structure
-            polygonGeometry = feature.geometry.geometry;
-          } else if (feature.geometry && feature.geometry.type === "Polygon") {
-            // Single nested structure
-            polygonGeometry = feature.geometry;
+    // Export für QGIS (GeoJSON)
+    app.get('/api/export/:studyId/geojson', async (req, res) => {
+      try {
+        const studyId = req.params.studyId;
+        
+        const [rows] = await pool.execute(`
+          SELECT 
+            r.geometry,
+            r.answer_data,
+            r.question_id,
+            r.audio_file,
+            r.created_at,
+            p.code as participant_code
+          FROM responses r
+          JOIN participants p ON r.participant_id = p.id
+          WHERE p.study_id = ?
+        `, [studyId]);
+        
+        const features = [];
+        
+        rows.forEach((row, index) => {
+          if (!row.geometry) return; // Skip if no geometry
+
+          let storedGeometry;
+          try {
+            storedGeometry = JSON.parse(row.geometry);
+          } catch (e) {
+            console.error('Error parsing geometry:', e);
+            return;
           }
           
-          if (polygonGeometry) {
-            features.push({
-              type: "Feature",
-              properties: {
-                id: `${index + 1}_${featureIndex + 1}`,
-                question_id: row.question_id,
-                participant_code: row.participant_code,
-                audio_file: row.audio_file,
-                created_at: row.created_at
-              },
-              geometry: polygonGeometry
+          // Extract geometries (Polygons and Points) from the nested structure
+          if (storedGeometry && storedGeometry.type === "FeatureCollection" && storedGeometry.features) {
+            storedGeometry.features.forEach((feature, featureIndex) => {
+              let geometry = null;
+              
+              // Handle different nesting levels
+              if (feature.geometry && feature.geometry.geometry && 
+                  (feature.geometry.geometry.type === "Polygon" || feature.geometry.geometry.type === "Point")) {
+                // Double nested structure
+                geometry = feature.geometry.geometry;
+              } else if (feature.geometry && 
+                         (feature.geometry.type === "Polygon" || feature.geometry.type === "Point")) {
+                // Single nested structure
+                geometry = feature.geometry;
+              }
+              
+              if (geometry) {
+                features.push({
+                  type: "Feature",
+                  properties: {
+                    id: `${index + 1}_${featureIndex + 1}`,
+                    question_id: row.question_id,
+                    participant_code: row.participant_code,
+                    audio_file: row.audio_file,
+                    answer_data: row.answer_data,
+                    created_at: row.created_at
+                  },
+                  geometry: geometry
+                });
+              }
             });
           }
         });
+        
+        const geojson = {
+          type: "FeatureCollection",
+          features: features
+        };
+        
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="study_${studyId}_export.geojson"`);
+        res.json(geojson);
+      } catch (error) {
+        console.error('Export error:', error);
+        return sendLocalizedResponse(res, 500, 'error.export_error', req.userLanguage);
       }
     });
-    
-    const geojson = {
-      type: "FeatureCollection",
-      features: features
-    };
-    
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', `attachment; filename="study_${studyId}_export.geojson"`);
-    res.json(geojson);
-  } catch (error) {
-    return sendLocalizedResponse(res, 500, 'error.export_error', req.userLanguage);
-  }
-});
 
-// GeoJSON Export für einzelne Teilnehmer
-app.get('/api/export/:studyId/participant/:participantCode/geojson', async (req, res) => {
-  try {
-    const { studyId, participantCode } = req.params;
-    
-    const [rows] = await pool.execute(`
-      SELECT 
-        r.geometry,
-        r.question_id,
-        r.audio_file,
-        r.created_at,
-        p.code as participant_code
-      FROM responses r
-      JOIN participants p ON r.participant_id = p.id
-      WHERE p.study_id = ? AND p.code = ?
-    `, [studyId, participantCode]);
-    
-    const features = [];
-    
-    rows.forEach((row, index) => {
-      const storedGeometry = JSON.parse(row.geometry);
-      
-      // Extract polygons from the nested structure
-      if (storedGeometry.type === "FeatureCollection" && storedGeometry.features) {
-        storedGeometry.features.forEach((feature, featureIndex) => {
-          let polygonGeometry = null;
-          
-          // Handle different nesting levels
-          if (feature.geometry && feature.geometry.geometry && feature.geometry.geometry.type === "Polygon") {
-            // Double nested structure
-            polygonGeometry = feature.geometry.geometry;
-          } else if (feature.geometry && feature.geometry.type === "Polygon") {
-            // Single nested structure
-            polygonGeometry = feature.geometry;
+    // GeoJSON Export für einzelne Teilnehmer
+    app.get('/api/export/:studyId/participant/:participantCode/geojson', async (req, res) => {
+      try {
+        const { studyId, participantCode } = req.params;
+        
+        const [rows] = await pool.execute(`
+          SELECT 
+            r.geometry,
+            r.answer_data,
+            r.question_id,
+            r.audio_file,
+            r.created_at,
+            p.code as participant_code
+          FROM responses r
+          JOIN participants p ON r.participant_id = p.id
+          WHERE p.study_id = ? AND p.code = ?
+        `, [studyId, participantCode]);
+        
+        const features = [];
+        
+        rows.forEach((row, index) => {
+          if (!row.geometry) return; // Skip if no geometry
+
+          let storedGeometry;
+          try {
+            storedGeometry = JSON.parse(row.geometry);
+          } catch (e) {
+            console.error('Error parsing geometry:', e);
+            return;
           }
           
-          if (polygonGeometry) {
-            features.push({
-              type: "Feature",
-              properties: {
-                id: `${index + 1}_${featureIndex + 1}`,
-                question_id: row.question_id,
-                participant_code: row.participant_code,
-                audio_file: row.audio_file,
-                created_at: row.created_at
-              },
-              geometry: polygonGeometry
+          // Extract geometries (Polygons and Points) from the nested structure
+          if (storedGeometry && storedGeometry.type === "FeatureCollection" && storedGeometry.features) {
+            storedGeometry.features.forEach((feature, featureIndex) => {
+              let geometry = null;
+              
+              // Handle different nesting levels
+              if (feature.geometry && feature.geometry.geometry && 
+                  (feature.geometry.geometry.type === "Polygon" || feature.geometry.geometry.type === "Point")) {
+                // Double nested structure
+                geometry = feature.geometry.geometry;
+              } else if (feature.geometry && 
+                         (feature.geometry.type === "Polygon" || feature.geometry.type === "Point")) {
+                // Single nested structure
+                geometry = feature.geometry;
+              }
+              
+              if (geometry) {
+                features.push({
+                  type: "Feature",
+                  properties: {
+                    id: `${index + 1}_${featureIndex + 1}`,
+                    question_id: row.question_id,
+                    participant_code: row.participant_code,
+                    audio_file: row.audio_file,
+                    answer_data: row.answer_data,
+                    created_at: row.created_at
+                  },
+                  geometry: geometry
+                });
+              }
             });
           }
         });
+        
+        const geojson = {
+          type: "FeatureCollection",
+          features: features
+        };
+        
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="study_${studyId}_participant_${participantCode}_export.geojson"`);
+        res.json(geojson);
+      } catch (error) {
+        console.error('Export error:', error);
+        return sendLocalizedResponse(res, 500, 'error.export_error', req.userLanguage);
       }
     });
     
-    const geojson = {
-      type: "FeatureCollection",
-      features: features
+    // Helper function for CSV escaping
+    const escapeCsvField = (field) => {
+      if (field === null || field === undefined) return '';
+      const stringField = String(field);
+      // Wenn das Feld Anführungszeichen, Kommas oder Zeilenumbrüche enthält, muss es in Anführungszeichen gesetzt werden
+      // und vorhandene Anführungszeichen müssen verdoppelt werden
+      if (stringField.includes('"') || stringField.includes(',') || stringField.includes('\n') || stringField.includes('\r')) {
+        return `"${stringField.replace(/"/g, '""')}"`;
+      }
+      return stringField;
     };
-    
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', `attachment; filename="study_${studyId}_participant_${participantCode}_export.geojson"`);
-    res.json(geojson);
-  } catch (error) {
-    return sendLocalizedResponse(res, 500, 'error.export_error', req.userLanguage);
-  }
-});
 
-// CSV Export für Studien
-app.get('/api/export/:studyId/csv', async (req, res) => {
-  try {
-    const studyId = req.params.studyId;
-    
-    const [rows] = await pool.execute(`
-      SELECT 
-        p.code as participant_code,
-        p.created_at as participant_created,
-        r.question_id,
-        r.audio_file,
-        r.created_at as response_created,
-        s.name as study_name
-      FROM responses r 
-      JOIN participants p ON r.participant_id = p.id 
-      JOIN studies s ON p.study_id = s.id
-      WHERE p.study_id = ?
-      ORDER BY p.created_at, r.created_at
-    `, [studyId]);
-    
-    // CSV Header
-    const csvHeader = [
-      'participant_code',
-      'participant_created',
-      'question_id',
-      'audio_file',
-      'response_created',
-      'study_name'
-    ].join(',');
-    
-    // CSV Rows
-    const csvRows = rows.map(row => [
-      row.participant_code,
-      row.participant_created,
-      row.question_id,
-      row.audio_file || '',
-      row.response_created,
-      row.study_name
-    ].map(field => `"${field}"`).join(','));
-    
-    const csvContent = [csvHeader, ...csvRows].join('\n');
-    
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="study_${studyId}_export.csv"`);
-    res.send('\ufeff' + csvContent); // BOM für Excel-Kompatibilität
-  } catch (error) {
-    return sendLocalizedResponse(res, 500, 'error.export_error', req.userLanguage);
-  }
-});
+    // CSV Export für Studien
+    app.get('/api/export/:studyId/csv', async (req, res) => {
+      try {
+        const studyId = req.params.studyId;
+        
+        const [rows] = await pool.execute(`
+          SELECT 
+            p.code as participant_code,
+            p.created_at as participant_created,
+            r.question_id,
+            r.audio_file,
+            r.answer_data,
+            r.created_at as response_created,
+            s.name as study_name
+          FROM responses r 
+          JOIN participants p ON r.participant_id = p.id 
+          JOIN studies s ON p.study_id = s.id
+          WHERE p.study_id = ?
+          ORDER BY p.created_at, r.created_at
+        `, [studyId]);
+        
+        // CSV Header
+        const csvHeader = [
+          'participant_code',
+          'participant_created',
+          'question_id',
+          'audio_file',
+          'answer_data',
+          'response_created',
+          'study_name'
+        ].join(',');
+        
+        // CSV Rows
+        const csvRows = rows.map(row => [
+          row.participant_code,
+          row.participant_created,
+          row.question_id,
+          row.audio_file || '',
+          row.answer_data || '',
+          row.response_created,
+          row.study_name
+        ].map(escapeCsvField).join(','));
+        
+        const csvContent = [csvHeader, ...csvRows].join('\n');
+        
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="study_${studyId}_export.csv"`);
+        res.send('\ufeff' + csvContent); // BOM für Excel-Kompatibilität
+      } catch (error) {
+        console.error('CSV Export error:', error);
+        return sendLocalizedResponse(res, 500, 'error.export_error', req.userLanguage);
+      }
+    });
 
 // Zusammenfassung einer Studie
 app.get('/api/export/:studyId/summary', async (req, res) => {
@@ -1069,6 +1118,90 @@ app.get('/api/studies/:id/public', async (req, res) => {
       ...row,
       requiresAccessCode: requiresAccessCode
     });
+  } catch (error) {
+    return sendLocalizedResponse(res, 500, 'error.database_error', req.userLanguage);
+  }
+});
+
+// Preview endpoint for study owners (bypasses published check)
+app.get('/api/studies/:id/preview', authenticateToken, async (req, res) => {
+  try {
+    const studyId = req.params.id;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    
+    let query = 'SELECT * FROM studies WHERE id = ?';
+    let params = [studyId];
+
+    // If not admin, ensure ownership
+    if (userRole !== 'admin') {
+      query += ' AND owner_id = ?';
+      params.push(userId);
+    }
+
+    const [rows] = await pool.execute(query, params);
+    const row = rows[0];
+    
+    if (!row) {
+      return sendLocalizedResponse(res, 404, 'study.not_found', req.userLanguage);
+    }
+    
+    // Config als JSON parsen
+    try {
+      row.config = JSON.parse(row.config);
+    } catch (e) {
+      row.config = {};
+    }
+    
+    // Prüfe, ob Zugangsschlüssel erforderlich ist
+    const requiresAccessCode = row.config.accessCode && row.config.accessCode.trim() !== '';
+    
+    res.json({
+      ...row,
+      requiresAccessCode: requiresAccessCode,
+      isPreview: true // Flag to indicate preview mode
+    });
+  } catch (error) {
+    console.error('Preview error:', error);
+    return sendLocalizedResponse(res, 500, 'error.database_error', req.userLanguage);
+  }
+});
+
+// Preview access verification
+app.post('/api/studies/:id/preview/verify-access', authenticateToken, async (req, res) => {
+  try {
+    const studyId = req.params.id;
+    const { accessCode } = req.body;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    
+    let query = 'SELECT config FROM studies WHERE id = ?';
+    let params = [studyId];
+
+    // If not admin, ensure ownership
+    if (userRole !== 'admin') {
+      query += ' AND owner_id = ?';
+      params.push(userId);
+    }
+    
+    const [rows] = await pool.execute(query, params);
+    const row = rows[0];
+    
+    if (!row) {
+      return sendLocalizedResponse(res, 404, 'study.not_found', req.userLanguage);
+    }
+    
+    let config;
+    try {
+      config = JSON.parse(row.config);
+    } catch (e) {
+      config = {};
+    }
+    
+    const requiredAccessCode = config.accessCode || '';
+    const isValid = requiredAccessCode === '' || requiredAccessCode === accessCode;
+    
+    res.json({ valid: isValid });
   } catch (error) {
     return sendLocalizedResponse(res, 500, 'error.database_error', req.userLanguage);
   }

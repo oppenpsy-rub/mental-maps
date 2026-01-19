@@ -11,6 +11,7 @@ import UserManagement from './UserManagement';
 import { AuthProvider, useAuth } from './Auth';
 import Login from './Login';
 import Profile from './Profile';
+import MentalMapAnalysis from './components/Analysis/MentalMapAnalysis';
 
 // Leaflet Icons für React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -47,6 +48,19 @@ function AudioAdminRoute() {
   }
   
   return <Admin onBack={() => navigate('/admin')} />;
+}
+
+// Analysis Route Component
+function AnalysisRoute() {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const { studyId } = useParams();
+  
+  if (!currentUser) {
+    return <Navigate to="/admin/login" replace />;
+  }
+  
+  return <MentalMapAnalysis studyId={studyId} onBack={() => navigate('/admin')} />;
 }
 
 // User Management Route Component
@@ -89,6 +103,35 @@ function SurveyRoute() {
   return <PublicSurvey studyId={surveyId} />;
 }
 
+// Demo study data for homepage preview
+const DEMO_STUDY = {
+  id: "demo-study",
+  name: "Demo: Mental Map Tool - English Language Perception Study",
+  description: "This is a demonstration of the Mental Map Tool with sample questions about English language perceptions. Your responses will not be saved.",
+  config: {
+    questions: [
+      {
+        id: 1,
+        text: "Where is the most beautiful English spoken? Mark areas on the map where you think the most beautiful English is spoken.",
+        description: "Draw areas on the map where you believe the most aesthetically pleasing or beautiful English is spoken.",
+        type: "polygon"
+      },
+      {
+        id: 2,
+        text: "Where is the most correct English spoken? Mark areas on the map where you think the most correct English is spoken.",
+        description: "Draw areas on the map where you believe the most grammatically correct or standard English is spoken.",
+        type: "polygon"
+      },
+      {
+        id: 3,
+        text: "Where is the ugliest English spoken? Mark areas on the map where you think the ugliest English is spoken.",
+        description: "Draw areas on the map where you believe the least aesthetically pleasing English is spoken.",
+        type: "polygon"
+      }
+    ]
+  }
+};
+
 // Home Route Component
 function HomeRoute() {
   const { currentUser, logout } = useAuth();
@@ -103,43 +146,68 @@ function HomeRoute() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
 
-  const loadStudy = useCallback(async () => {
+  const loadDemoStudy = useCallback(() => {
     try {
-      // Lade die erste verfügbare Studie
-      const studiesResponse = await axios.get('/api/studies');
-      const studies = studiesResponse.data;
-      
-      if (studies.length === 0) {
-        console.log('No studies available');
-        return;
+      // Use demo study instead of loading from database
+      setQuestions(DEMO_STUDY.config.questions);
+      setCurrentStudy(DEMO_STUDY);
+      if (DEMO_STUDY.config.questions.length > 0) {
+        setCurrentQuestion(DEMO_STUDY.config.questions[0]);
       }
-
-      const firstStudy = studies[0];
-      const response = await axios.get(`/api/studies/${firstStudy.id}`);
-      const study = response.data;
+      console.log('Demo study loaded:', DEMO_STUDY.name);
       
-      if (study.config && study.config.questions) {
-        setQuestions(study.config.questions);
-        setCurrentStudy(study);
-        if (study.config.questions.length > 0) {
-          setCurrentQuestion(study.config.questions[0]);
-        }
-        console.log('Studie geladen:', study.name);
-      } else {
-        console.error('Study has no valid questions');
-      }
-      
-      // Teilnehmer wird erst beim ersten Speichern von Polygonen erstellt
+      // Set a demo participant code
+      const demoCode = 'DEMO-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+      setParticipantCode(demoCode);
       
     } catch (error) {
-      console.error('Fehler beim Laden der Studie:', error);
+      console.error('Error loading demo study:', error);
     }
   }, []);
 
-  // Studie laden
+  // Load demo study on component mount
   useEffect(() => {
-    loadStudy();
-  }, [loadStudy]);
+    loadDemoStudy();
+  }, [loadDemoStudy]);
+
+  // Remove the old loadStudy call - we only want demo study on homepage
+  // const loadStudy = useCallback(async () => {
+  //   try {
+  //     // Lade die erste verfügbare Studie
+  //     const studiesResponse = await axios.get('/api/studies');
+  //     const studies = studiesResponse.data;
+  //     
+  //     if (studies.length === 0) {
+  //       console.log('No studies available');
+  //       return;
+  //     }
+  // 
+  //     const firstStudy = studies[0];
+  //     const response = await axios.get(`/api/studies/${firstStudy.id}`);
+  //     const study = response.data;
+  //     
+  //     if (study.config && study.config.questions) {
+  //       setQuestions(study.config.questions);
+  //       setCurrentStudy(study);
+  //       if (study.config.questions.length > 0) {
+  //         setCurrentQuestion(study.config.questions[0]);
+  //       }
+  //       console.log('Studie geladen:', study.name);
+  //     } else {
+  //       console.error('Study has no valid questions');
+  //     }
+  //     
+  //     // Teilnehmer wird erst beim ersten Speichern von Polygonen erstellt
+  //     
+  //   } catch (error) {
+  //     console.error('Fehler beim Laden der Studie:', error);
+  //   }
+  // }, []);
+  
+  // Studie laden
+  // useEffect(() => {
+  //   loadStudy();
+  // }, [loadStudy]);
 
   const createParticipant = async (studyId) => {
     try {
@@ -670,6 +738,7 @@ function App() {
           {/* Admin-Bereich */}
           <Route path="/admin/login" element={<LoginRoute />} />
           <Route path="/admin" element={<AdminRoute />} />
+          <Route path="/admin/analysis/:studyId" element={<AnalysisRoute />} />
           <Route path="/admin/profile" element={<ProfileRoute />} />
           <Route path="/admin/audio" element={<AudioAdminRoute />} />
           <Route path="/admin/users" element={<UserManagementRoute />} />

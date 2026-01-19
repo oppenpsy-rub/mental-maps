@@ -304,21 +304,38 @@ function StudyManagerUnified() {
         ...editingStudy.config,
         questions: editingStudy.config.questions.map(q => {
           if (q.id === questionId) {
-            const updatedQuestion = { ...q, [field]: value };
-            
-            // Automatisch den Typ auf 'audio_perception' setzen, wenn eine Audio-Datei zugewiesen wird
-            if (field === 'audioFile' && value && value.trim() !== '') {
-              updatedQuestion.type = 'audio_perception';
-            }
-            // Typ zurück auf 'map_drawing' setzen, wenn Audio-Datei entfernt wird
-            else if (field === 'audioFile' && (!value || value.trim() === '')) {
-              updatedQuestion.type = 'map_drawing';
-            }
-            
-            return updatedQuestion;
+            return { ...q, [field]: value };
           }
           return q;
         })
+      }
+    });
+  };
+
+  // Frage nach oben verschieben
+  const moveQuestionUp = (index) => {
+    if (index === 0) return;
+    const newQuestions = [...editingStudy.config.questions];
+    [newQuestions[index - 1], newQuestions[index]] = [newQuestions[index], newQuestions[index - 1]];
+    setEditingStudy({
+      ...editingStudy,
+      config: {
+        ...editingStudy.config,
+        questions: newQuestions
+      }
+    });
+  };
+
+  // Frage nach unten verschieben
+  const moveQuestionDown = (index) => {
+    if (index === editingStudy.config.questions.length - 1) return;
+    const newQuestions = [...editingStudy.config.questions];
+    [newQuestions[index], newQuestions[index + 1]] = [newQuestions[index + 1], newQuestions[index]];
+    setEditingStudy({
+      ...editingStudy,
+      config: {
+        ...editingStudy.config,
+        questions: newQuestions
       }
     });
   };
@@ -784,6 +801,18 @@ function StudyManagerUnified() {
                   
                   <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     <button
+                      onClick={() => window.open(`/survey/${study.id}?preview=true`, '_blank')}
+                      style={{
+                        ...getButtonStyle('secondary'),
+                        backgroundColor: '#17a2b8',
+                        borderColor: '#17a2b8',
+                        color: 'white'
+                      }}
+                      title={t('preview_study') || 'Vorschau'}
+                    >
+                      👁️ {t('preview') || 'Vorschau'}
+                    </button>
+                    <button
                       onClick={() => {
                         if (study.status === 'published') {
                           alert(t('published_studies_cannot_be_edited'));
@@ -930,6 +959,30 @@ function StudyManagerUnified() {
                   </div>
                   
                   <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => navigate(`/admin/analysis/${study.id}`)}
+                      style={{
+                        ...getButtonStyle('secondary'),
+                        backgroundColor: '#3b82f6',
+                        borderColor: '#3b82f6',
+                        color: 'white'
+                      }}
+                      title={t('analyze_study')}
+                    >
+                      🔥 {t('analyze')}
+                    </button>
+                    <button
+                      onClick={() => window.open(`/survey/${study.id}?preview=true`, '_blank')}
+                      style={{
+                        ...getButtonStyle('secondary'),
+                        backgroundColor: '#17a2b8',
+                        borderColor: '#17a2b8',
+                        color: 'white'
+                      }}
+                      title={t('preview_study') || 'Vorschau'}
+                    >
+                      👁️ {t('preview') || 'Vorschau'}
+                    </button>
                     <button
                       onClick={() => {
                         alert(t('published_studies_cannot_be_edited'));
@@ -1216,6 +1269,84 @@ function StudyManagerUnified() {
                   </select>
                 </div>
               </div>
+
+              <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={editingStudy.config.consentEnabled !== false} // Standardmäßig true
+                    onChange={(e) => setEditingStudy({
+                      ...editingStudy,
+                      config: {
+                        ...editingStudy.config,
+                        consentEnabled: e.target.checked
+                      }
+                    })}
+                    style={{ marginTop: '4px', transform: 'scale(1.2)' }}
+                  />
+                  <div>
+                    <div style={{ fontWeight: 'bold', color: '#495057', marginBottom: '4px' }}>
+                      {t('consent_enabled')}
+                    </div>
+                    <div style={{ fontSize: '14px', color: '#6c757d' }}>
+                      {t('consent_enabled_description')}
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              <div style={{ marginTop: '20px', display: 'grid', gap: '15px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#495057' }}>
+                    {t('consent_title')}
+                  </label>
+                  <input
+                    type="text"
+                    value={editingStudy.config.consentTitle || ''}
+                    onChange={(e) => setEditingStudy({
+                      ...editingStudy,
+                      config: {
+                        ...editingStudy.config,
+                        consentTitle: e.target.value
+                      }
+                    })}
+                    placeholder={t('consent_title')}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      border: '1px solid #ced4da',
+                      borderRadius: '5px',
+                      fontSize: '16px'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#495057' }}>
+                    {t('consent_text')}
+                  </label>
+                  <textarea
+                    value={editingStudy.config.consentText || ''}
+                    onChange={(e) => setEditingStudy({
+                      ...editingStudy,
+                      config: {
+                        ...editingStudy.config,
+                        consentText: e.target.value
+                      }
+                    })}
+                    placeholder={t('consent_text')}
+                    style={{
+                      width: '100%',
+                      minHeight: '150px',
+                      padding: '10px',
+                      border: '1px solid #ced4da',
+                      borderRadius: '5px',
+                      fontSize: '14px',
+                      resize: 'vertical'
+                    }}
+                  />
+                </div>
+              </div>
             </div>
           )}
           
@@ -1315,15 +1446,85 @@ function StudyManagerUnified() {
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '15px' }}>
                         <h4 style={{ margin: 0, color: '#495057' }}>{t('question')} {index + 1}</h4>
-                        <button
-                          onClick={() => deleteQuestion(question.id)}
-                          style={getButtonStyle('danger')}
-                        >
-                          🗑️ {t('delete')}
-                        </button>
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                          <button
+                            onClick={() => moveQuestionUp(index)}
+                            disabled={index === 0}
+                            style={{
+                              ...getButtonStyle('secondary'),
+                              padding: '5px 10px',
+                              opacity: index === 0 ? 0.3 : 1
+                            }}
+                            title={t('move_up') || 'Nach oben'}
+                          >
+                            ⬆️
+                          </button>
+                          <button
+                            onClick={() => moveQuestionDown(index)}
+                            disabled={index === editingStudy.config.questions.length - 1}
+                            style={{
+                              ...getButtonStyle('secondary'),
+                              padding: '5px 10px',
+                              opacity: index === editingStudy.config.questions.length - 1 ? 0.3 : 1
+                            }}
+                            title={t('move_down') || 'Nach unten'}
+                          >
+                            ⬇️
+                          </button>
+                          <button
+                            onClick={() => deleteQuestion(question.id)}
+                            style={getButtonStyle('danger')}
+                            title={t('delete')}
+                          >
+                            🗑️ {t('delete')}
+                          </button>
+                        </div>
                       </div>
                       
                       <div style={{ display: 'grid', gap: '15px' }}>
+                        <div>
+                          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                            {t('question_type')}:
+                          </label>
+                          <select
+                            value={question.type || 'map_drawing'}
+                            onChange={(e) => updateQuestion(question.id, 'type', e.target.value)}
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              border: '1px solid #ced4da',
+                              borderRadius: '5px'
+                            }}
+                          >
+                            <option value="map_drawing">{t('polygon_drawing')}</option>
+                            <option value="point_marking">{t('point_marking')}</option>
+                            <option value="text_input">{t('text_input')}</option>
+                            <option value="numeric_input">{t('numeric_input') || 'Numerische Eingabe'}</option>
+                            <option value="single_choice">{t('single_choice')}</option>
+                            <option value="multiple_choice">{t('multiple_choice')}</option>
+                            <option value="likert">{t('likert_scale') || 'Likert Skala'}</option>
+                            <option value="slider">{t('slider') || 'Schieberegler'}</option>
+                            <option value="date">{t('date') || 'Datum'}</option>
+                            <option value="instruction">{t('instruction_text')}</option>
+                            <option value="audio_perception">{t('audio_perception')} (Legacy)</option>
+                          </select>
+                        </div>
+
+                        {question.type !== 'instruction' && (
+                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+                            <input
+                              type="checkbox"
+                              checked={question.required !== false}
+                              onChange={(e) => updateQuestion(question.id, 'required', e.target.checked)}
+                              id={`required-${question.id}`}
+                              style={{ width: '18px', height: '18px', marginRight: '8px' }}
+                            />
+                            <label htmlFor={`required-${question.id}`} style={{ cursor: 'pointer' }}>
+                              {t('required_question') || 'Pflichtfrage'}
+                            </label>
+                          </div>
+                        )}
+
                         <div>
                           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                             {t('question_text')}:
@@ -1340,6 +1541,143 @@ function StudyManagerUnified() {
                             }}
                           />
                         </div>
+
+                        {/* Max Length Configuration for Text and Numeric Inputs */}
+                        {['text_input', 'numeric_input'].includes(question.type) && (
+                          <div>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                              {t('max_length') || 'Maximale Zeichenlänge'}:
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={question.maxLength || ''}
+                              onChange={(e) => updateQuestion(question.id, 'maxLength', e.target.value ? parseInt(e.target.value) : null)}
+                              placeholder={t('no_limit') || 'Keine Begrenzung'}
+                              style={{
+                                width: '100%',
+                                padding: '10px',
+                                border: '1px solid #ced4da',
+                                borderRadius: '5px'
+                              }}
+                            />
+                            <small style={{ color: '#6c757d', display: 'block', marginTop: '5px' }}>
+                              {t('leave_empty_for_no_limit') || 'Leer lassen für keine Begrenzung'}
+                            </small>
+                          </div>
+                        )}
+
+                        {/* Choice Options for Single/Multiple Choice and Likert */}
+                        {['single_choice', 'multiple_choice', 'likert'].includes(question.type) && (
+                          <div style={{ padding: '15px', backgroundColor: '#e9ecef', borderRadius: '5px' }}>
+                            <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>
+                              {t('answer_options')}:
+                            </label>
+                            {(question.options || []).map((option, optIndex) => (
+                              <div key={optIndex} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                <input
+                                  type="text"
+                                  value={option}
+                                  onChange={(e) => {
+                                    const newOptions = [...(question.options || [])];
+                                    newOptions[optIndex] = e.target.value;
+                                    updateQuestion(question.id, 'options', newOptions);
+                                  }}
+                                  placeholder={`${t('option')} ${optIndex + 1}`}
+                                  style={{
+                                    flex: 1,
+                                    padding: '8px',
+                                    border: '1px solid #ced4da',
+                                    borderRadius: '4px'
+                                  }}
+                                />
+                                <button
+                                  onClick={() => {
+                                    const newOptions = (question.options || []).filter((_, i) => i !== optIndex);
+                                    updateQuestion(question.id, 'options', newOptions);
+                                  }}
+                                  style={{
+                                    ...getButtonStyle('danger'),
+                                    padding: '5px 10px'
+                                  }}
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            ))}
+                            <button
+                              onClick={() => {
+                                const newOptions = [...(question.options || []), ''];
+                                updateQuestion(question.id, 'options', newOptions);
+                              }}
+                              style={{
+                                ...getButtonStyle('secondary'),
+                                fontSize: '14px',
+                                padding: '5px 10px'
+                              }}
+                            >
+                              ➕ {t('add_option')}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Slider Configuration */}
+                        {question.type === 'slider' && (
+                          <div style={{ padding: '15px', backgroundColor: '#e9ecef', borderRadius: '5px' }}>
+                            <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>
+                              {t('slider_config') || 'Schieberegler Konfiguration'}:
+                            </label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                              <div>
+                                <label style={{ display: 'block', fontSize: '12px' }}>Min:</label>
+                                <input
+                                  type="number"
+                                  value={question.min ?? 0}
+                                  onChange={(e) => updateQuestion(question.id, 'min', parseInt(e.target.value))}
+                                  style={{ width: '100%', padding: '5px' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ display: 'block', fontSize: '12px' }}>Max:</label>
+                                <input
+                                  type="number"
+                                  value={question.max ?? 100}
+                                  onChange={(e) => updateQuestion(question.id, 'max', parseInt(e.target.value))}
+                                  style={{ width: '100%', padding: '5px' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ display: 'block', fontSize: '12px' }}>Step:</label>
+                                <input
+                                  type="number"
+                                  value={question.step ?? 1}
+                                  onChange={(e) => updateQuestion(question.id, 'step', parseInt(e.target.value))}
+                                  style={{ width: '100%', padding: '5px' }}
+                                />
+                              </div>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '12px' }}>{t('label_left') || 'Label Links'}:</label>
+                                    <input
+                                        type="text"
+                                        value={question.leftLabel || ''}
+                                        onChange={(e) => updateQuestion(question.id, 'leftLabel', e.target.value)}
+                                        style={{ width: '100%', padding: '5px' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '12px' }}>{t('label_right') || 'Label Rechts'}:</label>
+                                    <input
+                                        type="text"
+                                        value={question.rightLabel || ''}
+                                        onChange={(e) => updateQuestion(question.id, 'rightLabel', e.target.value)}
+                                        style={{ width: '100%', padding: '5px' }}
+                                    />
+                                </div>
+                            </div>
+                          </div>
+                        )}
                         
                         {/* Audio-Upload für alle Fragen (optional) */}
                         <div>
@@ -1417,6 +1755,7 @@ function StudyManagerUnified() {
                         </div>
                         
                         {/* Karten-spezifische Einstellungen */}
+                        {['map_drawing', 'point_marking'].includes(question.type) && (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
                           <div>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
@@ -1448,7 +1787,62 @@ function StudyManagerUnified() {
                             </label>
                           </div>
                         </div>
+                        )}
                         
+                        {/* Bedingte Logik / Filter */}
+                        {index > 0 && (
+                          <div style={{ padding: '15px', backgroundColor: '#eef2f5', borderRadius: '5px', marginTop: '15px', border: '1px solid #dee2e6' }}>
+                            <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold', color: '#495057' }}>
+                              🔀 {t('logic_filter') || 'Bedingte Anzeige (Filter)'}:
+                            </label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                              <div>
+                                <label style={{ display: 'block', fontSize: '12px', marginBottom: '5px' }}>
+                                  {t('show_only_if_question') || 'Nur anzeigen, wenn Frage...'}:
+                                </label>
+                                <select
+                                  value={question.filter?.questionId || ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    updateQuestion(question.id, 'filter', val ? { ...question.filter, questionId: val } : null);
+                                  }}
+                                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da' }}
+                                >
+                                  <option value="">{t('always_show') || 'Immer anzeigen'}</option>
+                                  {editingStudy.config.questions
+                                    .slice(0, index) // Only previous questions
+                                    .filter(q => ['single_choice', 'multiple_choice', 'likert'].includes(q.type))
+                                    .map(q => (
+                                      <option key={q.id} value={q.id}>
+                                        {q.text?.substring(0, 50) + (q.text?.length > 50 ? '...' : '')}
+                                      </option>
+                                    ))}
+                                </select>
+                              </div>
+                              
+                              {question.filter?.questionId && (
+                                <div>
+                                  <label style={{ display: 'block', fontSize: '12px', marginBottom: '5px' }}>
+                                    {t('is_answered_with') || 'beantwortet wurde mit...'}:
+                                  </label>
+                                  <select
+                                    value={question.filter?.requiredAnswer || ''}
+                                    onChange={(e) => updateQuestion(question.id, 'filter', { ...question.filter, requiredAnswer: e.target.value })}
+                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da' }}
+                                  >
+                                    <option value="">{t('select_answer') || 'Antwort wählen...'}</option>
+                                    {editingStudy.config.questions
+                                      .find(q => q.id === question.filter.questionId)
+                                      ?.options?.map((opt, i) => (
+                                        <option key={i} value={opt}>{opt}</option>
+                                      ))}
+                                  </select>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
                         {/* Allgemeine Einstellungen für alle Fragentypen */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px', paddingTop: '10px' }}>
                           <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
