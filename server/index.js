@@ -1007,10 +1007,14 @@ app.get('/api/responses/:participantId', async (req, res) => {
               responses: {}
             };
           }
+          // Geometrien zählen für kartenbezogene Fragen
+          const geometry = row.geometry ? JSON.parse(row.geometry) : null;
+          const geometryCount = geometry ? (geometry.type === 'FeatureCollection' ? geometry.features.length : 1) : 0;
+          
           participantMap[row.participant_id].responses[row.question_id] = {
             audio_file: row.audio_file || '',
             answer_data: row.answer_data || '',
-            has_geometry: row.geometry ? 'Ja' : 'Nein',
+            geometry_count: geometryCount,
             response_created: row.response_created
           };
         });
@@ -1023,19 +1027,32 @@ app.get('/api/responses/:participantId', async (req, res) => {
         // Worksheet erstellen
         const worksheet = workbook.addWorksheet(study.name.substring(0, 31)); // Excel limit
         
-        // Dynamische Spalten basierend auf Fragen
+        // Dynamische Spalten basierend auf Fragen und deren Typ
         const baseColumns = [
           { header: 'Teilnehmer-Code', key: 'participant_code', width: 20 },
           { header: 'LimeSurvey ID', key: 'limesurvey_id', width: 15 },
           { header: 'Teilnehmer erstellt', key: 'participant_created', width: 18 }
         ];
         
-        // Fragen als Spalten hinzufügen
-        const questionColumns = studyConfig.questions.map((q, idx) => [
-          { header: `${q.text}`, key: `q${q.id}_answer`, width: 40 },
-          { header: `${q.text} - Audio`, key: `q${q.id}_audio`, width: 30 },
-          { header: `${q.text} - Karte`, key: `q${q.id}_geometry`, width: 10 }
-        ]).flat();
+        // Fragen als Spalten hinzufügen - nur relevante Spalten pro Fragentyp
+        const questionColumns = studyConfig.questions.map(q => {
+          const cols = [];
+          
+          // Immer die Antwort-Spalte
+          cols.push({ header: `${q.text}`, key: `q${q.id}_answer`, width: 40 });
+          
+          // Audio-Spalte nur für audio_perception Fragen
+          if (q.type === 'audio_perception' && q.audioFile) {
+            cols.push({ header: `${q.text} - Audio`, key: `q${q.id}_audio`, width: 30 });
+          }
+          
+          // Geometrie-Spalte nur für map_drawing Fragen
+          if (q.type === 'map_drawing') {
+            cols.push({ header: `${q.text} - Anzahl Geometrien`, key: `q${q.id}_geometry`, width: 15 });
+          }
+          
+          return cols;
+        }).flat();
         
         worksheet.columns = [...baseColumns, ...questionColumns];
         
@@ -1062,14 +1079,18 @@ app.get('/api/responses/:participantId', async (req, res) => {
           // Für jede Frage die Antworten hinzufügen
           studyConfig.questions.forEach(question => {
             const response = participant.responses[question.id];
-            if (response) {
-              rowData[`q${question.id}_answer`] = response.answer_data;
-              rowData[`q${question.id}_audio`] = response.audio_file;
-              rowData[`q${question.id}_geometry`] = response.has_geometry;
-            } else {
-              rowData[`q${question.id}_answer`] = '';
-              rowData[`q${question.id}_audio`] = '';
-              rowData[`q${question.id}_geometry`] = '';
+            
+            // Antwort-Spalte immer
+            rowData[`q${question.id}_answer`] = response ? response.answer_data : '';
+            
+            // Audio-Spalte nur für audio_perception
+            if (question.type === 'audio_perception' && question.audioFile) {
+              rowData[`q${question.id}_audio`] = response ? response.audio_file : '';
+            }
+            
+            // Geometrie-Spalte nur für map_drawing (mit Anzahl)
+            if (question.type === 'map_drawing') {
+              rowData[`q${question.id}_geometry`] = response ? response.geometry_count : 0;
             }
           });
           
