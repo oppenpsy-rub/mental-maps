@@ -980,6 +980,7 @@ app.get('/api/responses/:participantId', async (req, res) => {
         // Daten laden
         const [rows] = await pool.execute(`
           SELECT 
+            p.id as participant_id,
             p.code as participant_code,
             p.limesurvey_id,
             p.created_at as participant_created,
@@ -994,6 +995,26 @@ app.get('/api/responses/:participantId', async (req, res) => {
           ORDER BY p.created_at, r.created_at
         `, [studyId]);
         
+        // Daten gruppieren: Teilnehmer -> Fragen -> Antworten
+        const participantMap = {};
+        rows.forEach(row => {
+          if (!participantMap[row.participant_id]) {
+            participantMap[row.participant_id] = {
+              participant_id: row.participant_id,
+              participant_code: row.participant_code,
+              limesurvey_id: row.limesurvey_id || '',
+              participant_created: row.participant_created,
+              responses: {}
+            };
+          }
+          participantMap[row.participant_id].responses[row.question_id] = {
+            audio_file: row.audio_file || '',
+            answer_data: row.answer_data || '',
+            has_geometry: row.geometry ? 'Ja' : 'Nein',
+            response_created: row.response_created
+          };
+        });
+        
         // Excel Workbook erstellen
         const workbook = new ExcelJS.Workbook();
         workbook.creator = 'VOICE Mental Maps';
@@ -1002,19 +1023,21 @@ app.get('/api/responses/:participantId', async (req, res) => {
         // Worksheet erstellen
         const worksheet = workbook.addWorksheet(study.name.substring(0, 31)); // Excel limit
         
-        // Header-Zeile mit Styling
-        worksheet.columns = [
-          { header: 'Teilnehmer-Code', key: 'participant_code', width: 25 },
+        // Dynamische Spalten basierend auf Fragen
+        const baseColumns = [
+          { header: 'Teilnehmer-Code', key: 'participant_code', width: 20 },
           { header: 'LimeSurvey ID', key: 'limesurvey_id', width: 15 },
-          { header: 'Teilnehmer erstellt', key: 'participant_created', width: 20 },
-          { header: 'Frage ID', key: 'question_id', width: 30 },
-          { header: 'Frage Text', key: 'question_text', width: 50 },
-          { header: 'Frage Typ', key: 'question_type', width: 20 },
-          { header: 'Audio Datei', key: 'audio_file', width: 30 },
-          { header: 'Antwort', key: 'answer_data', width: 50 },
-          { header: 'Hat Geometrie', key: 'has_geometry', width: 15 },
-          { header: 'Antwort erstellt', key: 'response_created', width: 20 }
+          { header: 'Teilnehmer erstellt', key: 'participant_created', width: 18 }
         ];
+        
+        // Fragen als Spalten hinzufügen
+        const questionColumns = studyConfig.questions.map((q, idx) => [
+          { header: `${q.text}`, key: `q${q.id}_answer`, width: 40 },
+          { header: `${q.text} - Audio`, key: `q${q.id}_audio`, width: 30 },
+          { header: `${q.text} - Karte`, key: `q${q.id}_geometry`, width: 10 }
+        ]).flat();
+        
+        worksheet.columns = [...baseColumns, ...questionColumns];
         
         // Header-Styling
         worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -1023,24 +1046,34 @@ app.get('/api/responses/:participantId', async (req, res) => {
           pattern: 'solid',
           fgColor: { argb: 'FF3498DB' }
         };
-        worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+        worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
         
-        // Daten hinzufügen
-        rows.forEach(row => {
-          const question = studyConfig.questions.find(q => q.id === row.question_id);
+        // Header-Zeilenhöhe
+        worksheet.getRow(1).height = 40;
+        
+        // Daten hinzufügen - ein Teilnehmer pro Zeile
+        Object.values(participantMap).forEach(participant => {
+          const rowData = {
+            participant_code: participant.participant_code,
+            limesurvey_id: participant.limesurvey_id,
+            participant_created: participant.participant_created
+          };
           
-          worksheet.addRow({
-            participant_code: row.participant_code,
-            limesurvey_id: row.limesurvey_id || '',
-            participant_created: row.participant_created,
-            question_id: row.question_id,
-            question_text: question ? question.text : '',
-            question_type: question ? question.type : '',
-            audio_file: row.audio_file || '',
-            answer_data: row.answer_data || '',
-            has_geometry: row.geometry ? 'Ja' : 'Nein',
-            response_created: row.response_created
+          // Für jede Frage die Antworten hinzufügen
+          studyConfig.questions.forEach(question => {
+            const response = participant.responses[question.id];
+            if (response) {
+              rowData[`q${question.id}_answer`] = response.answer_data;
+              rowData[`q${question.id}_audio`] = response.audio_file;
+              rowData[`q${question.id}_geometry`] = response.has_geometry;
+            } else {
+              rowData[`q${question.id}_answer`] = '';
+              rowData[`q${question.id}_audio`] = '';
+              rowData[`q${question.id}_geometry`] = '';
+            }
           });
+          
+          worksheet.addRow(rowData);
         });
         
         // Zeilen abwechselnd einfärben
@@ -1055,10 +1088,12 @@ app.get('/api/responses/:participantId', async (req, res) => {
         });
         
         // Auto-Filter hinzufügen
-        worksheet.autoFilter = {
-          from: 'A1',
-          to: `J${worksheet.rowCount}`
-        };
+        if (worksheet.rowCount > 1) {
+          worksheet.autoFilter = {
+            from: 'A1',
+            to: worksheet.getCell(1, worksheet.columns.length).address
+          };
+        }
         
         // Excel-Datei als Buffer generieren
         const buffer = await workbook.xlsx.writeBuffer();
