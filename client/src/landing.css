@@ -85,6 +85,9 @@
   align-items: center;
   justify-content: center;
   min-height: 500px;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
 }
 
 .landing-hero::before {
@@ -116,8 +119,25 @@
 .landing-hero-subtitle {
   font-size: 20px;
   color: #555;
-  margin: 0 0 40px 0;
+  margin: 0 0 20px 0;
   line-height: 1.6;
+}
+
+.landing-hero-voice {
+  font-size: 16px;
+  color: #2c3e50;
+  margin: 0 0 40px 0;
+  line-height: 1.5;
+}
+
+.landing-hero-voice strong {
+  color: #3498db;
+  font-weight: 700;
+}
+
+.landing-hero-voice em {
+  font-style: italic;
+  color: #555;
 }
 
 .landing-cta-button {
@@ -206,6 +226,9 @@
   color: white;
   padding: 80px 24px;
   text-align: center;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
 }
 
 .landing-cta-content {
@@ -329,6 +352,10 @@
     font-size: 16px;
   }
 
+  .landing-hero-voice {
+    font-size: 13px;
+  }
+
   .landing-features-container {
     grid-template-columns: 1fr;
     gap: 24px;
@@ -400,6 +427,11 @@
 
   .landing-hero-subtitle {
     font-size: 14px;
+    margin-bottom: 1rem;
+  }
+
+  .landing-hero-voice {
+    font-size: 12px;
     margin-bottom: 1.5rem;
   }
 
@@ -482,6 +514,10 @@
     font-size: 15px;
   }
 
+  .landing-hero-voice {
+    font-size: 12px;
+  }
+
   .landing-features-container {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
@@ -560,6 +596,10 @@
 
   .landing-hero-subtitle {
     font-size: 18px;
+  }
+
+  .landing-hero-voice {
+    font-size: 14px;
   }
 
   .landing-features-container {

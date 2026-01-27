@@ -303,7 +303,6 @@ function HomeRoute() {
           <div className="landing-header-content">
             <div className="landing-logo">
               <h1>VOICE Mental Maps</h1>
-              <span className="landing-logo-subtitle">Variation Observed In Community Evaluations</span>
             </div>
             <nav className="landing-nav">
               {currentUser ? (
@@ -336,9 +335,13 @@ function HomeRoute() {
         {/* Hero Section */}
         <section className="landing-hero">
           <div className="landing-hero-content">
-            <div className="landing-hero-badge">VOICE - Variation Observed In Community Evaluations</div>
             <h2 className="landing-hero-title">Kartographie von Wahrnehmungen</h2>
-            <p className="landing-hero-subtitle">Erfassen Sie räumliche Perzeptionen und mentale Karten durch interaktive, kartenbasierte Umfragen</p>
+            <p className="landing-hero-subtitle">
+              Erfassen Sie räumliche Perzeptionen und mentale Karten durch interaktive, kartenbasierte Umfragen
+            </p>
+            <p className="landing-hero-voice">
+              <strong>VOICE</strong>: <em>Variation Observed In Community Evaluations</em>
+            </p>
             <button 
               className="landing-cta-button"
               onClick={() => setShowDemo(true)}
@@ -421,10 +424,7 @@ function HomeRoute() {
 
         {/* Footer */}
         <footer className="landing-footer">
-          <div className="landing-footer-content">
-            <p>&copy; 2025 VOICE Mental Maps. Alle Rechte vorbehalten.</p>
-            <p className="landing-footer-acronym">VOICE - Variation Observed In Community Evaluations</p>
-          </div>
+          <p>&copy; 2025 VOICE Mental Maps. Alle Rechte vorbehalten.</p>
         </footer>
       </div>
     );
