@@ -261,7 +261,7 @@ function Profile() {
               fontWeight: '500',
               color: '#2c3e50'
             }}>
-              Abteilung/Fachbereich
+              {t('department_faculty')}
             </label>
             <input
               type="text"
@@ -269,7 +269,7 @@ function Profile() {
               value={formData.department}
               onChange={handleInputChange}
               disabled={!isEditing}
-              placeholder="z.B. Psychologie, Geographie"
+              placeholder={t('department_placeholder')}
               style={{
                 width: '100%',
                 padding: '10px 12px',
@@ -291,7 +291,7 @@ function Profile() {
               fontWeight: '500',
               color: '#2c3e50'
             }}>
-              Sprache
+              {t('language')}
             </label>
             <select
               name="language"

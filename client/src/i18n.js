@@ -378,10 +378,15 @@ const resources = {
       // Profile Management
       "profile": "Profil",
       "profile_management": "Verwalten Sie Ihre Profildaten und Einstellungen",
+      "profile_description": "Verwalten Sie Ihre Profildaten und Einstellungen",
       "institution": "Institution",
       "department": "Abteilung",
+      "department_faculty": "Abteilung/Fachbereich",
+      "department_placeholder": "z.B. Psychologie, Geographie",
       "profile_updated": "Profil erfolgreich aktualisiert",
+      "profile_updated_successfully": "Profil erfolgreich aktualisiert",
       "profile_update_error": "Fehler beim Aktualisieren des Profils",
+      "error_updating_profile": "Fehler beim Aktualisieren des Profils",
       "required_field": "Pflichtfeld",
       
       // Preview
@@ -698,6 +703,10 @@ const resources = {
       "profile_description": "Manage your profile data and settings",
       "profile_updated_successfully": "Profile updated successfully",
       "error_updating_profile": "Error updating profile",
+      "institution": "Institution",
+      "department": "Department",
+      "department_faculty": "Department/Faculty",
+      "department_placeholder": "e.g. Psychology, Geography",
       "name_required": "Name *",
       "email_required": "Email *",
       
@@ -998,6 +1007,10 @@ const resources = {
       "profile_description": "Gérer vos données de profil et paramètres",
       "profile_updated_successfully": "Profil mis à jour avec succès",
       "error_updating_profile": "Erreur lors de la mise à jour du profil",
+      "institution": "Institution",
+      "department": "Département",
+      "department_faculty": "Département/Faculté",
+      "department_placeholder": "p. ex. Psychologie, Géographie",
       "name_required": "Nom *",
       "email_required": "E-mail *"
     }
