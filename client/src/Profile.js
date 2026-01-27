@@ -340,16 +340,20 @@ function Profile() {
                     cursor: 'pointer',
                     fontSize: '14px',
                     fontWeight: '500',
-                    transition: 'all 0.2s ease'
+                    transition: 'background-color 0.2s ease'
                   }}
-                  onMouseOver={(e) => e.target.style.backgroundColor = '#7f8c8d'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = '#95a5a6'}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#7f8c8d'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#95a5a6'}
                 >
                   {t('back')}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsEditing(true)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsEditing(true);
+                  }}
                   style={{
                     padding: '10px 16px',
                     backgroundColor: '#2c3e50',
@@ -359,10 +363,10 @@ function Profile() {
                     cursor: 'pointer',
                     fontSize: '14px',
                     fontWeight: '500',
-                    transition: 'all 0.2s ease'
+                    transition: 'background-color 0.2s ease'
                   }}
-                  onMouseOver={(e) => e.target.style.backgroundColor = '#1a252f'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = '#2c3e50'}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#1a252f'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#2c3e50'}
                 >
                   {t('edit')}
                 </button>
@@ -371,7 +375,11 @@ function Profile() {
               <>
                 <button
                   type="button"
-                  onClick={handleCancel}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleCancel();
+                  }}
                   disabled={loading}
                   style={{
                     padding: '10px 16px',
@@ -382,11 +390,11 @@ function Profile() {
                     cursor: loading ? 'not-allowed' : 'pointer',
                     fontSize: '14px',
                     fontWeight: '500',
-                    transition: 'all 0.2s ease',
+                    transition: 'background-color 0.2s ease',
                     opacity: loading ? 0.6 : 1
                   }}
-                  onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#7f8c8d')}
-                  onMouseOut={(e) => !loading && (e.target.style.backgroundColor = '#95a5a6')}
+                  onMouseEnter={(e) => !loading && (e.target.style.backgroundColor = '#7f8c8d')}
+                  onMouseLeave={(e) => !loading && (e.target.style.backgroundColor = '#95a5a6')}
                 >
                   {t('cancel')}
                 </button>
@@ -402,11 +410,11 @@ function Profile() {
                     cursor: loading ? 'not-allowed' : 'pointer',
                     fontSize: '14px',
                     fontWeight: '500',
-                    transition: 'all 0.2s ease',
+                    transition: 'background-color 0.2s ease',
                     opacity: loading ? 0.6 : 1
                   }}
-                  onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#229954')}
-                  onMouseOut={(e) => !loading && (e.target.style.backgroundColor = '#27ae60')}
+                  onMouseEnter={(e) => !loading && (e.target.style.backgroundColor = '#229954')}
+                  onMouseLeave={(e) => !loading && (e.target.style.backgroundColor = '#27ae60')}
                 >
                   {loading ? t('saving') : t('save')}
                 </button>
