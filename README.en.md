@@ -30,6 +30,10 @@ This tool was developed for linguistic research and enables researchers to syste
 
 ### 🛠️ **Technical Features**
 - **React.js frontend** with modern UI
+- **Responsive design** with hamburger menu for mobile/tablet/desktop
+- **10 languages supported** (German, English, French, Italian, Spanish, Portuguese, Romanian, Chinese, Russian, Catalan)
+- **Touch support** for mobile devices in polygon drawing
+- **GPS geolocation capture** (optional, for participant locations)
 - **Node.js/Express backend** with SQLite database
 - **OpenStreetMap integration** (open source)
 - **GeoJSON export** for QGIS analysis
@@ -93,9 +97,14 @@ npm start
 
 2. **Draw polygons**
    - Click "Start Drawing"
-   - Hold down the mouse and draw
+   - Hold down the mouse and draw (also touch gestures on mobile devices)
    - Release the mouse → polygon will be completed if necessary
    - You can draw multiple polygons if allowed for the respective question
+
+3. **GPS location capture** (if enabled)
+   - If the study has GPS capture enabled, you will be asked for location access
+   - Your approximate location will be captured once when completing the survey
+   - This is optional and can be declined
 
 3. **Delete individual polygons**
    - Hover over a polygon (turns red)
@@ -120,8 +129,10 @@ npm start
 2. Create a new study or edit existing ones
 3. Add questions
 4. Configure polygon limits (1, 3, 5, 10 polygons)
-5. Save the study
-6. Publish the study to give participants access
+5. **Optional**: Enable GPS capture in study settings
+6. **Optional**: Enable consent screen for participants
+7. Save the study
+8. Publish the study to give participants access
 
 #### **Export data**
 1. Select a study

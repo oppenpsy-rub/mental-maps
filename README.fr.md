@@ -30,6 +30,10 @@ Cet outil a été développé pour la recherche en linguistique et permet aux ch
 
 ### 🛠️ **Fonctionnalités techniques**
 - **Frontend React.js** avec interface utilisateur moderne
+- **Design réactif** avec menu hamburger pour mobile/tablette/bureau
+- **10 langues supportées** (allemand, anglais, français, italien, espagnol, portugais, roumain, chinois, russe, catalan)
+- **Support tactile** pour les appareils mobiles lors du dessin de polygones
+- **Capture de géolocalisation GPS** (optionnelle, pour les emplacements des participants)
 - **Backend Node.js/Express** avec base de données SQLite
 - **Intégration OpenStreetMap** (open source)
 - **Export GeoJSON** pour l'analyse QGIS
@@ -93,9 +97,14 @@ npm start
 
 2. **Dessiner des polygones**
    - Cliquer sur "Commencer le dessin"
-   - Maintenir la souris enfoncée et dessiner
+   - Maintenir la souris enfoncée et dessiner (également les gestes tactiles sur les appareils mobiles)
    - Relâcher la souris → le polygone sera complété si nécessaire
    - Vous pouvez dessiner plusieurs polygones si autorisé pour la question respective
+
+3. **Capture de localisation GPS** (si activée)
+   - Si l'étude a la capture GPS activée, vous serez invité à autoriser l'accès à la localisation
+   - Votre position approximative sera capturée une fois lors de la finalisation de l'enquête
+   - Ceci est optionnel et peut être refusé
 
 3. **Supprimer des polygones individuels**
    - Survoler un polygone (devient rouge)
@@ -120,8 +129,10 @@ npm start
 2. Créer une nouvelle étude ou modifier les existantes
 3. Ajouter des questions
 4. Configurer les limites de polygones (1, 3, 5, 10 polygones)
-5. Sauvegarder l'étude
-6. Publier l'étude pour donner accès aux participants
+5. **Optionnel** : Activer la capture GPS dans les paramètres de l'étude
+6. **Optionnel** : Activer l'écran de consentement pour les participants
+7. Sauvegarder l'étude
+8. Publier l'étude pour donner accès aux participants
 
 #### **Exporter les données**
 1. Sélectionner une étude

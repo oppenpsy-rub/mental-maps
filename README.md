@@ -31,6 +31,10 @@ Dieses Tool wurde für die Forschung in der Linguistik entwickelt und ermöglich
 
 ### 🛠️ **Technische Features**
 - **React.js Frontend** mit moderner UI
+- **Responsive Design** mit Hamburger-Menü für Mobile/Tablet/Desktop
+- **10 Sprachen unterstützt** (Deutsch, Englisch, Französisch, Italienisch, Spanisch, Portugiesisch, Rumänisch, Chinesisch, Russisch, Katalanisch)
+- **Touch-Unterstützung** für mobile Geräte beim Polygon-Zeichnen
+- **GPS-Geolocation-Erfassung** (optional, für Teilnehmerstandorte)
 - **Node.js/Express Backend** mit SQLite-Datenbank
 - **OpenStreetMap Integration** (quelloffen)
 - **GeoJSON-Export** für QGIS-Analyse
@@ -94,9 +98,14 @@ npm start
 
 2. **Polygone zeichnen**
    - Klicken Sie "Zeichnen starten"
-   - Halten Sie die Maus gedrückt und zeichnen Sie
+   - Halten Sie die Maus gedrückt und zeichnen Sie (auch Touch-Gesten auf mobilen Geräten)
    - Lassen Sie die Maus los → Polygon wird ggfs. vervollständigt 
    - Sie können mehrere Polygone zeichnen, sofern dies für die jeweilige Frage zugelassen ist
+
+3. **GPS-Standorterfassung** (falls aktiviert)
+   - Wenn die Studie GPS-Erfassung aktiviert hat, werden Sie um Standortzugriff gebeten
+   - Ihre ungefähre Position wird einmalig beim Abschluss der Umfrage erfasst
+   - Dies ist optional und kann abgelehnt werden
 
 3. **Einzelne Polygone löschen**
    - Fahren Sie über ein Polygon (wird rot)
@@ -121,8 +130,10 @@ npm start
 2. Erstellen Sie eine neue Studie oder bearbeiten Sie bestehende
 3. Fügen Sie Fragen hinzu
 4. Konfigurieren Sie Polygon-Limits (1, 3, 5, 10 Polygone)
-5. Speichern Sie die Studie
-6. Veröffentlichen Sie die Studie, um Teilnehmern darauf Zugriff zu gewähren
+5. **Optional**: Aktivieren Sie GPS-Erfassung in den Studieneinstellungen
+6. **Optional**: Aktivieren Sie Einwilligungsbildschirm für Teilnehmer
+7. Speichern Sie die Studie
+8. Veröffentlichen Sie die Studie, um Teilnehmern darauf Zugriff zu gewähren
 
 #### **Daten exportieren**
 1. Wählen Sie eine Studie aus
