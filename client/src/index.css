@@ -154,6 +154,16 @@ code {
   background-clip: text;
 }
 
+.landing-logo-subtitle {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 400;
+  color: #6b7280;
+  margin-top: 2px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
 .landing-nav {
   display: flex;
   gap: 1rem;
@@ -230,6 +240,21 @@ code {
   max-width: 1200px;
   margin: 0 auto;
   text-align: center;
+}
+
+.landing-hero-badge {
+  display: inline-block;
+  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 30px;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
 }
 
 .landing-hero-title {
@@ -434,6 +459,21 @@ code {
   text-align: center;
   color: #6b7280;
   border-top: 1px solid #e5e7eb;
+}
+
+.landing-footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.landing-footer-content p {
+  margin: 0.5rem 0;
+}
+
+.landing-footer-acronym {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  font-style: italic;
 }
 
 /* App Layout */
@@ -3272,6 +3312,10 @@ code {
     font-size: 1.25rem;
   }
 
+  .landing-logo-subtitle {
+    font-size: 0.55rem;
+  }
+
   .landing-nav {
     width: 100%;
     flex-direction: column;
@@ -3289,6 +3333,11 @@ code {
 
   .landing-hero-title {
     font-size: 1.75rem;
+  }
+
+  .landing-hero-badge {
+    font-size: 0.65rem;
+    padding: 6px 14px;
   }
 
   .landing-hero-subtitle {
