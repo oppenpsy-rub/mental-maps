@@ -3,14 +3,15 @@ services:
     name: mentalmap-tool
     env: node
     buildCommand: |
+      cd server
       npm install
-      cd client
+      cd ../client
       npm install --legacy-peer-deps
       npm run build
       cd ..
       ls -la client/
       ls -la client/build/ || echo "Build directory not found"
-    startCommand: npm start
+    startCommand: cd server && npm start
     envVars:
       - key: NODE_ENV
         value: production
