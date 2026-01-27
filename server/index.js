@@ -627,10 +627,11 @@ app.post('/api/responses', async (req, res) => {
       geometryKeys: req.body.geometry ? Object.keys(req.body.geometry) : 'null',
       audioFile: req.body.audioFile,
       hasAnswerData: !!req.body.answerData,
+      hasGeolocation: !!req.body.geolocation,
       bodyKeys: Object.keys(req.body)
     });
     
-    const { participantId, questionId, geometry, audioFile, answerData } = req.body;
+    const { participantId, questionId, geometry, audioFile, answerData, geolocation } = req.body;
     
     // Validierung der erforderlichen Felder
     if (!participantId || !questionId) {
@@ -670,6 +671,13 @@ app.post('/api/responses', async (req, res) => {
       answerDataString = typeof answerData === 'string' ? answerData : JSON.stringify(answerData);
     }
     
+    // Geolocation-Daten speichern falls vorhanden
+    let geolocationString = null;
+    if (geolocation) {
+      geolocationString = typeof geolocation === 'string' ? geolocation : JSON.stringify(geolocation);
+      console.log('📍 Geolocation erfasst:', { latitude: geolocation.latitude, longitude: geolocation.longitude, accuracy: geolocation.accuracy });
+    }
+    
     // Prüfen ob bereits eine Antwort für diesen Teilnehmer und diese Frage existiert
     // und falls ja, diese aktualisieren (für Zurück-Navigation in der Umfrage)
     const [existingResponse] = await pool.execute(
@@ -679,21 +687,28 @@ app.post('/api/responses', async (req, res) => {
 
     if (existingResponse.length > 0) {
       await pool.execute(
-        'UPDATE responses SET geometry = ?, answer_data = ?, audio_file = ? WHERE id = ?',
-        [geometryString, answerDataString, audioFile, existingResponse[0].id]
+        'UPDATE responses SET geometry = ?, answer_data = ?, geolocation = ?, audio_file = ? WHERE id = ?',
+        [geometryString, answerDataString, geolocationString, audioFile, existingResponse[0].id]
       );
       console.log('✅ Antwort aktualisiert:', existingResponse[0].id);
     } else {
       await pool.execute(
-        'INSERT INTO responses (participant_id, question_id, geometry, answer_data, audio_file) VALUES (?, ?, ?, ?, ?)',
-        [participantDbId, questionId, geometryString, answerDataString, audioFile]
+        'INSERT INTO responses (participant_id, question_id, geometry, answer_data, geolocation, audio_file) VALUES (?, ?, ?, ?, ?, ?)',
+        [participantDbId, questionId, geometryString, answerDataString, geolocationString, audioFile]
       );
       console.log('✅ Neue Antwort gespeichert');
     }
 
     return sendLocalizedResponse(res, 201, 'general.response_saved_success', req.userLanguage);
   } catch (error) {
-    console.error('❌ Fehler beim Speichern der Antwort:', error);
+    console.error('❌ Fehler beim Speichern der Antwort:', {
+      message: error.message,
+      code: error.code,
+      sqlState: error.sqlState,
+      sql: error.sql,
+      errno: error.errno,
+      stack: error.stack
+    });
     return sendLocalizedResponse(res, 500, 'error.response_save', req.userLanguage);
   }
 });
