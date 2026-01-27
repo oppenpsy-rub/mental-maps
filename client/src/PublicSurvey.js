@@ -5,8 +5,7 @@ import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle, Lock, FileText, AlertTriangle, XCircle } from 'lucide-react';
-import i18n from './i18n';
+import { Lock, AlertTriangle, XCircle } from 'lucide-react';
 
 // Leaflet Icons für React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -352,6 +351,38 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
       setParticipantCode(currentParticipantCode); // Update the state
     }
 
+    // Erfasse Geolocation wenn aktiviert
+    let geolocationData = null;
+    if (study?.config?.captureGeolocation) {
+      try {
+        geolocationData = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              resolve({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy,
+                timestamp: new Date().toISOString()
+              });
+            },
+            (error) => {
+              console.warn('Geolocation error:', error);
+              if (error.code === error.PERMISSION_DENIED) {
+                reject(new Error(t('geolocation_denied')));
+              } else {
+                reject(new Error(t('geolocation_error')));
+              }
+            },
+            { timeout: 10000, maximumAge: 0 }
+          );
+        });
+      } catch (geoError) {
+        console.error('GPS-Fehler:', geoError);
+        // Nicht abbrechen, nur warnen
+        alert(geoError.message);
+      }
+    }
+
     try {
       const payload = {
         participantId: currentParticipantCode,
@@ -405,6 +436,11 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
       } else {
         // Speichere normale Antwortdaten
         payload.answerData = answer;
+      }
+
+      // Füge Geolocation hinzu wenn erfasst
+      if (geolocationData) {
+        payload.geolocation = geolocationData;
       }
 
       // Update local responses for filtering
@@ -562,6 +598,29 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
 
             {/* Consent Actions */}
             <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Geolocation Info */}
+              {study?.config?.captureGeolocation && (
+                <div style={{
+                  padding: '16px',
+                  borderRadius: '8px',
+                  backgroundColor: '#f0f9ff',
+                  border: '1px solid #93c5fd',
+                  color: '#1e40af',
+                  fontSize: '14px',
+                  display: 'flex',
+                  gap: '12px',
+                  alignItems: 'flex-start'
+                }}>
+                  <div style={{ fontSize: '20px', marginTop: '2px' }}>📍</div>
+                  <div>
+                    <strong>{t('geolocation_permission')}</strong>
+                    <div style={{ marginTop: '4px', opacity: 0.9 }}>
+                      {t('geolocation_permission_description')}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Checkbox */}
               <label style={{
                 display: 'flex',

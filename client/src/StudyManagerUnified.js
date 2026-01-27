@@ -59,6 +59,7 @@ function StudyManagerUnified() {
   useEffect(() => {
     loadStudies();
     loadAudioFiles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadAudioFiles = async () => {
@@ -713,7 +714,7 @@ function StudyManagerUnified() {
                 key={tab.id}
                 onClick={() => { setActiveTab(tab.id); setMobileMenuOpen(false); }}
                 style={{
-                  display: 'block',
+                  display: 'flex',
                   width: '100%',
                   padding: '16px 20px',
                   backgroundColor: activeTab === tab.id ? '#2c3e50' : 'transparent',
@@ -726,7 +727,6 @@ function StudyManagerUnified() {
                   transition: 'all 0.2s ease',
                   borderLeft: activeTab === tab.id ? '3px solid #3498db' : '3px solid transparent',
                   minHeight: '44px',
-                  display: 'flex',
                   alignItems: 'center'
                 }}
               >
@@ -737,7 +737,7 @@ function StudyManagerUnified() {
             <button
               onClick={() => { navigate('/admin/profile'); setMobileMenuOpen(false); }}
               style={{
-                display: 'block',
+                display: 'flex',
                 width: '100%',
                 padding: '16px 20px',
                 backgroundColor: 'transparent',
@@ -747,7 +747,6 @@ function StudyManagerUnified() {
                 cursor: 'pointer',
                 fontSize: '15px',
                 minHeight: '44px',
-                display: 'flex',
                 alignItems: 'center'
               }}
               onMouseOver={(e) => e.target.style.color = 'white'}
@@ -758,7 +757,7 @@ function StudyManagerUnified() {
             <button
               onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
               style={{
-                display: 'block',
+                display: 'flex',
                 width: '100%',
                 padding: '16px 20px',
                 backgroundColor: 'rgba(192, 57, 43, 0.3)',
@@ -769,7 +768,6 @@ function StudyManagerUnified() {
                 fontSize: '15px',
                 fontWeight: '500',
                 minHeight: '44px',
-                display: 'flex',
                 alignItems: 'center'
               }}
               onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(192, 57, 43, 0.5)'}
@@ -1603,6 +1601,32 @@ function StudyManagerUnified() {
                     }}
                   />
                 </div>
+              </div>
+
+              {/* Geolocation Setting */}
+              <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={editingStudy.config.captureGeolocation || false}
+                    onChange={(e) => setEditingStudy({
+                      ...editingStudy,
+                      config: {
+                        ...editingStudy.config,
+                        captureGeolocation: e.target.checked
+                      }
+                    })}
+                    style={{ marginTop: '4px', transform: 'scale(1.2)' }}
+                  />
+                  <div>
+                    <div style={{ fontWeight: 'bold', color: '#495057', marginBottom: '4px' }}>
+                      {t('capture_geolocation')}
+                    </div>
+                    <div style={{ fontSize: '14px', color: '#6c757d' }}>
+                      {t('capture_geolocation_description')}
+                    </div>
+                  </div>
+                </label>
               </div>
             </div>
           )}
