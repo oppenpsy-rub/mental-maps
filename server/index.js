@@ -943,6 +943,303 @@ app.get('/api/responses/:participantId', async (req, res) => {
       }
     });
 
+    // XLSX Export für Studien
+    app.get('/api/export/:studyId/xlsx', async (req, res) => {
+      try {
+        const ExcelJS = require('exceljs');
+        const studyId = req.params.studyId;
+        
+        // Studie laden
+        const [studyRows] = await pool.execute('SELECT * FROM studies WHERE id = ?', [studyId]);
+        const study = studyRows[0];
+        
+        if (!study) {
+          return sendLocalizedResponse(res, 404, 'study.not_found', req.userLanguage);
+        }
+        
+        const studyConfig = JSON.parse(study.config);
+        
+        // Daten laden
+        const [rows] = await pool.execute(`
+          SELECT 
+            p.code as participant_code,
+            p.limesurvey_id,
+            p.created_at as participant_created,
+            r.question_id,
+            r.audio_file,
+            r.answer_data,
+            r.geometry,
+            r.created_at as response_created
+          FROM responses r 
+          JOIN participants p ON r.participant_id = p.id 
+          WHERE p.study_id = ?
+          ORDER BY p.created_at, r.created_at
+        `, [studyId]);
+        
+        // Excel Workbook erstellen
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'VOICE Mental Maps';
+        workbook.created = new Date();
+        
+        // Worksheet erstellen
+        const worksheet = workbook.addWorksheet(study.name.substring(0, 31)); // Excel limit
+        
+        // Header-Zeile mit Styling
+        worksheet.columns = [
+          { header: 'Teilnehmer-Code', key: 'participant_code', width: 25 },
+          { header: 'LimeSurvey ID', key: 'limesurvey_id', width: 15 },
+          { header: 'Teilnehmer erstellt', key: 'participant_created', width: 20 },
+          { header: 'Frage ID', key: 'question_id', width: 30 },
+          { header: 'Frage Text', key: 'question_text', width: 50 },
+          { header: 'Frage Typ', key: 'question_type', width: 20 },
+          { header: 'Audio Datei', key: 'audio_file', width: 30 },
+          { header: 'Antwort', key: 'answer_data', width: 50 },
+          { header: 'Hat Geometrie', key: 'has_geometry', width: 15 },
+          { header: 'Antwort erstellt', key: 'response_created', width: 20 }
+        ];
+        
+        // Header-Styling
+        worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        worksheet.getRow(1).fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF3498DB' }
+        };
+        worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+        
+        // Daten hinzufügen
+        rows.forEach(row => {
+          const question = studyConfig.questions.find(q => q.id === row.question_id);
+          
+          worksheet.addRow({
+            participant_code: row.participant_code,
+            limesurvey_id: row.limesurvey_id || '',
+            participant_created: row.participant_created,
+            question_id: row.question_id,
+            question_text: question ? question.text : '',
+            question_type: question ? question.type : '',
+            audio_file: row.audio_file || '',
+            answer_data: row.answer_data || '',
+            has_geometry: row.geometry ? 'Ja' : 'Nein',
+            response_created: row.response_created
+          });
+        });
+        
+        // Zeilen abwechselnd einfärben
+        worksheet.eachRow((row, rowNumber) => {
+          if (rowNumber > 1 && rowNumber % 2 === 0) {
+            row.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFF5F5F5' }
+            };
+          }
+        });
+        
+        // Auto-Filter hinzufügen
+        worksheet.autoFilter = {
+          from: 'A1',
+          to: `J${worksheet.rowCount}`
+        };
+        
+        // Excel-Datei als Buffer generieren
+        const buffer = await workbook.xlsx.writeBuffer();
+        
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="study_${studyId}_export.xlsx"`);
+        res.send(buffer);
+      } catch (error) {
+        console.error('XLSX Export error:', error);
+        return sendLocalizedResponse(res, 500, 'error.export_error', req.userLanguage);
+      }
+    });
+
+    // PDF Export für Studien-Antworten
+    app.get('/api/export/:studyId/pdf', async (req, res) => {
+      try {
+        const PDFDocument = require('pdfkit');
+        const studyId = req.params.studyId;
+        
+        // Studie laden
+        const [studyRows] = await pool.execute('SELECT * FROM studies WHERE id = ?', [studyId]);
+        const study = studyRows[0];
+        
+        if (!study) {
+          return sendLocalizedResponse(res, 404, 'study.not_found', req.userLanguage);
+        }
+        
+        const studyConfig = JSON.parse(study.config);
+        
+        // Teilnehmer und Antworten laden
+        const [participants] = await pool.execute(`
+          SELECT DISTINCT 
+            p.id,
+            p.code,
+            p.limesurvey_id,
+            p.created_at
+          FROM participants p
+          WHERE p.study_id = ?
+          ORDER BY p.created_at
+        `, [studyId]);
+        
+        // PDF erstellen
+        const doc = new PDFDocument({ 
+          size: 'A4', 
+          margins: { top: 50, bottom: 50, left: 50, right: 50 }
+        });
+        
+        // Response-Header setzen
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="study_${studyId}_responses.pdf"`);
+        
+        // PDF an Response streamen
+        doc.pipe(res);
+        
+        // Titel-Seite
+        doc.fontSize(24).font('Helvetica-Bold').text('VOICE Mental Maps', { align: 'center' });
+        doc.moveDown(0.5);
+        doc.fontSize(18).font('Helvetica').text(study.name, { align: 'center' });
+        doc.moveDown(0.5);
+        doc.fontSize(10).font('Helvetica').text(`Erstellt am: ${new Date().toLocaleDateString('de-DE')}`, { align: 'center' });
+        doc.moveDown(2);
+        
+        // Studien-Informationen
+        doc.fontSize(12).font('Helvetica-Bold').text('Studien-Informationen', { underline: true });
+        doc.moveDown(0.5);
+        doc.fontSize(10).font('Helvetica')
+          .text(`Anzahl Fragen: ${studyConfig.questions.length}`)
+          .text(`Anzahl Teilnehmer: ${participants.length}`)
+          .text(`Studie erstellt: ${new Date(study.created_at).toLocaleDateString('de-DE')}`);
+        doc.moveDown(2);
+        
+        // Für jeden Teilnehmer
+        for (let i = 0; i < participants.length; i++) {
+          const participant = participants[i];
+          
+          // Neue Seite für jeden Teilnehmer (außer dem ersten)
+          if (i > 0) {
+            doc.addPage();
+          }
+          
+          // Teilnehmer-Header
+          doc.fontSize(14).font('Helvetica-Bold')
+            .fillColor('#3498DB')
+            .text(`Teilnehmer ${i + 1}: ${participant.code}`, { underline: true });
+          doc.fillColor('#000000');
+          doc.moveDown(0.3);
+          
+          if (participant.limesurvey_id) {
+            doc.fontSize(9).font('Helvetica').text(`LimeSurvey ID: ${participant.limesurvey_id}`);
+          }
+          doc.fontSize(9).text(`Erstellt am: ${new Date(participant.created_at).toLocaleDateString('de-DE', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}`);
+          doc.moveDown(1);
+          
+          // Antworten des Teilnehmers laden
+          const [responses] = await pool.execute(`
+            SELECT 
+              r.question_id,
+              r.answer_data,
+              r.geometry,
+              r.audio_file,
+              r.created_at
+            FROM responses r
+            WHERE r.participant_id = ?
+            ORDER BY r.created_at
+          `, [participant.id]);
+          
+          // Jede Antwort
+          responses.forEach((response, idx) => {
+            const question = studyConfig.questions.find(q => q.id === response.question_id);
+            
+            if (!question) return;
+            
+            // Frage
+            doc.fontSize(11).font('Helvetica-Bold')
+              .text(`Frage ${idx + 1}:`, { continued: true })
+              .font('Helvetica')
+              .text(` ${question.text}`);
+            doc.moveDown(0.3);
+            
+            // Frage-Typ
+            doc.fontSize(9).font('Helvetica-Oblique')
+              .fillColor('#666666')
+              .text(`Typ: ${question.type}${question.audioFile ? ' (mit Audio: ' + question.audioFile + ')' : ''}`);
+            doc.fillColor('#000000');
+            doc.moveDown(0.5);
+            
+            // Antwort
+            doc.fontSize(10).font('Helvetica');
+            
+            if (response.answer_data) {
+              doc.text(`Antwort: ${response.answer_data}`);
+            }
+            
+            if (response.geometry) {
+              try {
+                const geom = JSON.parse(response.geometry);
+                if (geom.features && geom.features.length > 0) {
+                  doc.text(`Räumliche Daten: ${geom.features.length} Geometrie(n) gezeichnet`);
+                }
+              } catch (e) {
+                doc.text('Räumliche Daten: Vorhanden (siehe GeoJSON Export)');
+              }
+            }
+            
+            doc.fontSize(8).fillColor('#999999')
+              .text(`Beantwortet am: ${new Date(response.created_at).toLocaleDateString('de-DE', {
+                year: 'numeric',
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}`);
+            doc.fillColor('#000000');
+            
+            doc.moveDown(1);
+            
+            // Seitenumbruch wenn nötig
+            if (doc.y > 700 && idx < responses.length - 1) {
+              doc.addPage();
+            }
+          });
+          
+          if (responses.length === 0) {
+            doc.fontSize(10).font('Helvetica-Oblique')
+              .fillColor('#999999')
+              .text('Keine Antworten vorhanden');
+            doc.fillColor('#000000');
+          }
+        }
+        
+        // Fußzeile auf jeder Seite
+        const pages = doc.bufferedPageRange();
+        for (let i = 0; i < pages.count; i++) {
+          doc.switchToPage(i);
+          doc.fontSize(8).font('Helvetica')
+            .fillColor('#999999')
+            .text(
+              `Seite ${i + 1} von ${pages.count}`,
+              50,
+              doc.page.height - 50,
+              { align: 'center' }
+            );
+          doc.fillColor('#000000');
+        }
+        
+        // PDF finalisieren
+        doc.end();
+      } catch (error) {
+        console.error('PDF Export error:', error);
+        return sendLocalizedResponse(res, 500, 'error.export_error', req.userLanguage);
+      }
+    });
+
 // Zusammenfassung einer Studie
 app.get('/api/export/:studyId/summary', async (req, res) => {
   try {

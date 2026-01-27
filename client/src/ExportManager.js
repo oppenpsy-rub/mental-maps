@@ -93,6 +93,54 @@ function ExportManager({ studyId, studyName, onBack }) {
     setLoading(false);
   };
 
+  const downloadXLSX = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`/api/export/${studyId}/xlsx`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `study_${studyId}_export.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      setMessage(t('xlsx_export_successful') || 'Excel-Export erfolgreich');
+    } catch (error) {
+      console.error('Fehler beim XLSX-Export:', error);
+      setMessage(t('error_xlsx_export') || 'Fehler beim Excel-Export');
+    }
+    setLoading(false);
+  };
+
+  const downloadPDF = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`/api/export/${studyId}/pdf`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `study_${studyId}_responses.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      setMessage(t('pdf_export_successful') || 'PDF-Export erfolgreich');
+    } catch (error) {
+      console.error('Fehler beim PDF-Export:', error);
+      setMessage(t('error_pdf_export') || 'Fehler beim PDF-Export');
+    }
+    setLoading(false);
+  };
+
   const downloadParticipantGeoJSON = async (participantCode) => {
     setLoading(true);
     try {
@@ -291,6 +339,38 @@ function ExportManager({ studyId, studyName, onBack }) {
               >
                 <FileText size={20} />
                 {t('csv_for_excel_spss')}
+              </button>
+              
+              <button
+                onClick={downloadXLSX}
+                disabled={loading || summary.statistics.responses === 0}
+                className="export-btn export-btn-success"
+                style={{
+                  backgroundColor: '#27ae60',
+                  color: 'white',
+                  border: 'none'
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#229954'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#27ae60'}
+              >
+                <FileText size={20} />
+                📊 Excel (XLSX)
+              </button>
+              
+              <button
+                onClick={downloadPDF}
+                disabled={loading || summary.statistics.responses === 0}
+                className="export-btn export-btn-warning"
+                style={{
+                  backgroundColor: '#e74c3c',
+                  color: 'white',
+                  border: 'none'
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#c0392b'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#e74c3c'}
+              >
+                <FileText size={20} />
+                📄 PDF Report
               </button>
             </div>
             
