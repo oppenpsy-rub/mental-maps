@@ -3,7 +3,11 @@ services:
     name: mentalmap-tool
     env: node
     buildCommand: |
-      cd server && npm install && cd ../client && npm install --legacy-peer-deps && npm run build
+      npm install
+      cd client
+      npm install --legacy-peer-deps
+      npm run build
+      cd ..
     startCommand: node server/index.js
     rootDir: .
     envVars:
