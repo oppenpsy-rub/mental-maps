@@ -392,6 +392,11 @@ code {
   border: 1px solid #d9e2ec;
   box-shadow: 0 10px 24px rgba(17, 24, 39, 0.08);
   background: #fff;
+  touch-action: none;
+  /* Allow touch interactions for drawing while preventing default browser behavior */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .public-survey .map-full {

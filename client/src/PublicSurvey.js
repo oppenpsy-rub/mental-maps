@@ -1052,6 +1052,71 @@ function MapDrawingLayer({ onPolygonsChange, onDrawingChange, currentQuestion })
     map.keyboard.enable();
   }, [currentQuestion?.id]); // Nur ausführen, wenn sich die Fragen-ID ändert
 
+  // Direct DOM Touch Events für bessere Touch-Support
+  useEffect(() => {
+    if (!map || !map.getContainer()) return;
+    
+    const container = map.getContainer();
+    const mapElement = container.querySelector('.leaflet-container') || container;
+    
+    const handleTouchStart = (e) => {
+      if (!isDrawing || e.touches.length === 0) return;
+      
+      const touch = e.touches[0];
+      const rect = mapElement.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      const point = map.containerPointToLatLng([x, y]);
+      
+      if (currentQuestion?.type === 'point_marking') {
+        const marker = L.marker(point).addTo(map);
+        marker.on('click', () => deletePolygon(marker));
+        const newPolygons = [...polygons, marker];
+        setPolygons(newPolygons);
+        onPolygonsChange(newPolygons);
+      } else if (currentQuestion?.type !== 'point_marking') {
+        startDrawingAt(point);
+      }
+      
+      e.preventDefault();
+    };
+    
+    const handleTouchMove = (e) => {
+      if (!isDrawing || !isMouseDown || !currentPath || e.touches.length === 0) return;
+      if (currentQuestion?.type === 'point_marking') return;
+      
+      const touch = e.touches[0];
+      const rect = mapElement.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      const point = map.containerPointToLatLng([x, y]);
+      
+      const newPoints = [...points, point];
+      setPoints(newPoints);
+      currentPath.setLatLngs(newPoints);
+      
+      e.preventDefault();
+    };
+    
+    const handleTouchEnd = (e) => {
+      if (!isDrawing || !isMouseDown) return;
+      if (currentQuestion?.type !== 'point_marking') {
+        finishDrawing();
+      }
+      e.preventDefault();
+    };
+    
+    mapElement.addEventListener('touchstart', handleTouchStart, { passive: false });
+    mapElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+    mapElement.addEventListener('touchend', handleTouchEnd, { passive: false });
+    
+    return () => {
+      mapElement.removeEventListener('touchstart', handleTouchStart);
+      mapElement.removeEventListener('touchmove', handleTouchMove);
+      mapElement.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isDrawing, isMouseDown, currentPath, points, polygons, currentQuestion?.type, map]);
+
   useMapEvents({
     // Mouse Events
     mousedown: (e) => {
@@ -1081,6 +1146,52 @@ function MapDrawingLayer({ onPolygonsChange, onDrawingChange, currentQuestion })
       }
     },
 
+    // Touch Events für Tablets & Smartphones
+    touchstart: (e) => {
+      if (isDrawing && e.touches.length > 0) {
+        if (currentQuestion.type === 'point_marking') {
+          const touch = e.touches[0];
+          const point = map.mouseEventToLatLng(touch);
+          const marker = L.marker(point).addTo(map);
+          
+          marker.on('click', () => {
+            deletePolygon(marker);
+          });
+
+          const newPolygons = [...polygons, marker];
+          setPolygons(newPolygons);
+          onPolygonsChange(newPolygons);
+        } else {
+          const touch = e.touches[0];
+          const point = map.mouseEventToLatLng(touch);
+          startDrawingAt(point);
+        }
+        e.originalEvent.stopPropagation();
+        e.originalEvent.preventDefault();
+      }
+    },
+
+    touchmove: (e) => {
+      if (isDrawing && isMouseDown && currentPath && currentQuestion.type !== 'point_marking' && e.touches.length > 0) {
+        const touch = e.touches[0];
+        const point = map.mouseEventToLatLng(touch);
+        const newPoints = [...points, point];
+        setPoints(newPoints);
+        currentPath.setLatLngs(newPoints);
+        
+        e.originalEvent.stopPropagation();
+        e.originalEvent.preventDefault();
+      }
+    },
+
+    touchend: (e) => {
+      if (isDrawing && isMouseDown && currentQuestion.type !== 'point_marking') {
+        finishDrawing();
+        e.originalEvent.stopPropagation();
+        e.originalEvent.preventDefault();
+      }
+    },
+
     click: (e) => {
       if (isDrawing && currentQuestion.type === 'point_marking') {
         const marker = L.marker(e.latlng).addTo(map);
@@ -1093,6 +1204,34 @@ function MapDrawingLayer({ onPolygonsChange, onDrawingChange, currentQuestion })
         const newPolygons = [...polygons, marker];
         setPolygons(newPolygons);
         onPolygonsChange(newPolygons);
+      }
+    },
+
+    // Pointer Events für unified Touch + Mouse handling
+    pointerdown: (e) => {
+      if (isDrawing && currentQuestion.type !== 'point_marking' && e.pointerType !== 'touch') {
+        startDrawingAt(e.latlng);
+        e.originalEvent.stopPropagation();
+        e.originalEvent.preventDefault();
+      }
+    },
+
+    pointermove: (e) => {
+      if (isDrawing && isMouseDown && currentPath && currentQuestion.type !== 'point_marking' && e.pointerType !== 'touch') {
+        const newPoints = [...points, e.latlng];
+        setPoints(newPoints);
+        currentPath.setLatLngs(newPoints);
+        
+        e.originalEvent.stopPropagation();
+        e.originalEvent.preventDefault();
+      }
+    },
+
+    pointerup: (e) => {
+      if (isDrawing && isMouseDown && currentQuestion.type !== 'point_marking' && e.pointerType !== 'touch') {
+        finishDrawing();
+        e.originalEvent.stopPropagation();
+        e.originalEvent.preventDefault();
       }
     }
   });
