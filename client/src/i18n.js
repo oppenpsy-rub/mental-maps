@@ -128,6 +128,9 @@ const resources = {
       "max_length": "Maximale Zeichenlänge",
       "no_limit": "Keine Begrenzung",
       "leave_empty_for_no_limit": "Leer lassen für keine Begrenzung",
+      "move_up": "Nach oben",
+      "move_down": "Nach unten",
+      "delete_option": "Option löschen",
       
       // Audio
       "play_audio": "Audio abspielen",
@@ -514,6 +517,9 @@ const resources = {
       "max_length": "Maximum length",
       "no_limit": "No limit",
       "leave_empty_for_no_limit": "Leave empty for no limit",
+      "move_up": "Move Up",
+      "move_down": "Move Down",
+      "delete_option": "Delete Option",
       
       // Study Management
       "study_management": "Study Management",
@@ -842,6 +848,9 @@ const resources = {
       "max_length": "Longueur maximale",
       "no_limit": "Aucune limite",
       "leave_empty_for_no_limit": "Laisser vide pour aucune limite",
+      "move_up": "Déplacer vers le haut",
+      "move_down": "Déplacer vers le bas",
+      "delete_option": "Supprimer l'option",
       
       // Study Management
       "study_management": "Gestion des Études",

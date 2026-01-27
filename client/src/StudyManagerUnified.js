@@ -1738,7 +1738,7 @@ function StudyManagerUnified() {
                             }}
                             title={t('move_up') || 'Nach oben'}
                           >
-                            Move Up
+                            {t('move_up')}
                           </button>
                           <button
                             onClick={() => moveQuestionDown(index)}
@@ -1750,7 +1750,7 @@ function StudyManagerUnified() {
                             }}
                             title={t('move_down') || 'Nach unten'}
                           >
-                            Move Down
+                            {t('move_down')}
                           </button>
                           <button
                             onClick={() => deleteQuestion(question.id)}
@@ -1882,7 +1882,7 @@ function StudyManagerUnified() {
                                     padding: '5px 10px'
                                   }}
                                 >
-                                  Delete
+                                  {t('delete_option')}
                                 </button>
                               </div>
                             ))}
