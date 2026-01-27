@@ -678,6 +678,9 @@ app.post('/api/responses', async (req, res) => {
       console.log('📍 Geolocation erfasst:', { latitude: geolocation.latitude, longitude: geolocation.longitude, accuracy: geolocation.accuracy });
     }
     
+    // audioFile auf null setzen wenn undefined
+    const audioFileValue = audioFile || null;
+    
     // Prüfen ob bereits eine Antwort für diesen Teilnehmer und diese Frage existiert
     // und falls ja, diese aktualisieren (für Zurück-Navigation in der Umfrage)
     const [existingResponse] = await pool.execute(
@@ -688,13 +691,13 @@ app.post('/api/responses', async (req, res) => {
     if (existingResponse.length > 0) {
       await pool.execute(
         'UPDATE responses SET geometry = ?, answer_data = ?, geolocation = ?, audio_file = ? WHERE id = ?',
-        [geometryString, answerDataString, geolocationString, audioFile, existingResponse[0].id]
+        [geometryString, answerDataString, geolocationString, audioFileValue, existingResponse[0].id]
       );
       console.log('✅ Antwort aktualisiert:', existingResponse[0].id);
     } else {
       await pool.execute(
         'INSERT INTO responses (participant_id, question_id, geometry, answer_data, geolocation, audio_file) VALUES (?, ?, ?, ?, ?, ?)',
-        [participantDbId, questionId, geometryString, answerDataString, geolocationString, audioFile]
+        [participantDbId, questionId, geometryString, answerDataString, geolocationString, audioFileValue]
       );
       console.log('✅ Neue Antwort gespeichert');
     }
