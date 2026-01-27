@@ -1,6 +1,6 @@
 {
-  "name": "mentalmap-client",
-  "version": "1.0.0",
+  "name": "voice-mental-maps-client",
+  "version": "0.1.0",
   "private": true,
   "dependencies": {
     "ajv": "^8.17.1",

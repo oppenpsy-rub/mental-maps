@@ -549,12 +549,22 @@ app.post('/api/studies/:id/unpublish', async (req, res) => {
 app.post('/api/participants', async (req, res) => {
   try {
     const { studyId } = req.body;
+    console.log('📝 Participant-Request erhalten mit studyId:', studyId);
+    
+    if (!studyId) {
+      console.error('❌ studyId fehlt!');
+      return sendLocalizedResponse(res, 400, 'error.missing_required_fields', req.userLanguage);
+    }
+
     const code = generateParticipantCode();
+    console.log('🔐 Generierter Code:', code);
     
     const [result] = await pool.execute(
       'INSERT INTO participants (code, study_id) VALUES (?, ?)',
       [code, studyId]
     );
+    
+    console.log('✅ Teilnehmer erstellt mit ID:', result.insertId, 'Code:', code);
     
     return sendLocalizedResponse(res, 201, 'study.participant_created_success', req.userLanguage, { 
       id: result.insertId, 
@@ -562,6 +572,7 @@ app.post('/api/participants', async (req, res) => {
       studyId 
     });
   } catch (error) {
+    console.error('❌ Fehler beim Erstellen des Teilnehmers:', error);
     return sendLocalizedResponse(res, 500, 'study.participant_creation_error', req.userLanguage);
   }
 });
@@ -615,7 +626,8 @@ app.post('/api/responses', async (req, res) => {
       geometryType: typeof req.body.geometry,
       geometryKeys: req.body.geometry ? Object.keys(req.body.geometry) : 'null',
       audioFile: req.body.audioFile,
-      hasAnswerData: !!req.body.answerData
+      hasAnswerData: !!req.body.answerData,
+      bodyKeys: Object.keys(req.body)
     });
     
     const { participantId, questionId, geometry, audioFile, answerData } = req.body;
@@ -1124,22 +1136,12 @@ app.get('/api/studies/:id/public', async (req, res) => {
 });
 
 // Preview endpoint for study owners (bypasses published check)
-app.get('/api/studies/:id/preview', authenticateToken, async (req, res) => {
+// No authentication required - studyId acts as access token
+app.get('/api/studies/:id/preview', async (req, res) => {
   try {
     const studyId = req.params.id;
-    const userId = req.user.id;
-    const userRole = req.user.role;
     
-    let query = 'SELECT * FROM studies WHERE id = ?';
-    let params = [studyId];
-
-    // If not admin, ensure ownership
-    if (userRole !== 'admin') {
-      query += ' AND owner_id = ?';
-      params.push(userId);
-    }
-
-    const [rows] = await pool.execute(query, params);
+    const [rows] = await pool.execute('SELECT * FROM studies WHERE id = ?', [studyId]);
     const row = rows[0];
     
     if (!row) {
@@ -1328,7 +1330,7 @@ app.get('*', (req, res) => {
 
 // Server starten
 app.listen(PORT, () => {
-  console.log(`🚀 Mental Map Server läuft auf Port ${PORT}`);
+  console.log(`🚀 VOICE Mental Maps Server läuft auf Port ${PORT}`);
   console.log(`📊 MySQL Datenbank: ${dbConfig.database}`);
   console.log(`🎵 Audio-Uploads: ./uploads/audio/`);
 });

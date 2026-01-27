@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { 
+  FileText, Download, HelpCircle, Map as MapIcon, Users, Copy, Check, AlertCircle, 
+  Trash2, Edit2, X
+} from 'lucide-react';
 
 function ExportManager({ studyId, studyName, onBack }) {
   const { t } = useTranslation();
@@ -20,7 +24,7 @@ function ExportManager({ studyId, studyName, onBack }) {
       console.error('Fehler beim Laden der Zusammenfassung:', error);
       setMessage(t('error_loading_study_summary'));
     }
-  }, [studyId]);
+  }, [studyId, t]);
 
   const loadParticipants = useCallback(async () => {
     try {
@@ -30,7 +34,7 @@ function ExportManager({ studyId, studyName, onBack }) {
       console.error('Fehler beim Laden der Teilnehmer:', error);
       setMessage(t('error_loading_participants'));
     }
-  }, [studyId]);
+  }, [studyId, t]);
 
   useEffect(() => {
     if (studyId) {
@@ -186,30 +190,35 @@ function ExportManager({ studyId, studyName, onBack }) {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
-      <h1 style={{ 
-        color: '#2c3e50', 
-        fontSize: '28px', 
-        fontWeight: '600', 
-        marginBottom: '20px',
-        borderBottom: '2px solid #e9ecef',
-        paddingBottom: '10px'
-      }}>
-{t('data_export_title')}: {studyName}
-      </h1>
+    <div className="export-container">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h1 className="export-title">
+          {t('data_export_title')}: {studyName}
+        </h1>
+        <button
+          onClick={onBack}
+          style={{
+            padding: '10px 16px',
+            backgroundColor: '#95a5a6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '500',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseOver={(e) => e.target.style.backgroundColor = '#7f8c8d'}
+          onMouseOut={(e) => e.target.style.backgroundColor = '#95a5a6'}
+        >
+          {t('back')}
+        </button>
+      </div>
       
       {/* Nachricht */}
       {message && (
-        <div style={{
-          padding: '12px 16px',
-          backgroundColor: message.includes('Fehler') ? '#f8d7da' : '#d1ecf1',
-          color: message.includes('Fehler') ? '#721c24' : '#0c5460',
-          border: '1px solid',
-          borderColor: message.includes('Fehler') ? '#f5c6cb' : '#bee5eb',
-          borderRadius: '6px',
-          marginBottom: '20px',
-          fontSize: '14px'
-        }}>
+        <div className={`export-message ${message.includes('Fehler') ? 'export-message-error' : 'export-message-success'}`}>
+          {message.includes('Fehler') ? <AlertCircle size={20} /> : <Check size={20} />}
           {message}
         </div>
       )}
@@ -217,45 +226,33 @@ function ExportManager({ studyId, studyName, onBack }) {
       {summary && (
         <div>
           {/* Studien-Zusammenfassung */}
-          <div style={{ 
-            border: '1px solid #dee2e6', 
-            padding: '24px', 
-            borderRadius: '8px', 
-            marginBottom: '24px',
-            backgroundColor: '#ffffff',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}>
-            <h2 style={{ 
-              color: '#495057', 
-              fontSize: '20px', 
-              fontWeight: '600', 
-              marginBottom: '20px',
-              marginTop: '0'
-            }}>
+          <div className="export-section export-section-primary">
+            <h2 className="export-section-title text-primary">
+              <FileText size={24} />
               {t('study_summary_title')}
             </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-              <div style={{ textAlign: 'center', padding: '16px', backgroundColor: '#f8f9fa', borderRadius: '6px' }}>
-                <h4 style={{ margin: '0 0 8px 0', color: '#6c757d', fontSize: '14px', fontWeight: '500' }}>{t('participants_count')}</h4>
-                <div style={{ fontSize: '32px', fontWeight: '700', color: '#495057' }}>
+            <div className="export-summary-grid">
+              <div className="export-stat-card">
+                <h4 className="export-stat-label">{t('participants_count')}</h4>
+                <div className="export-stat-value">
                   {summary.statistics.participants}
                 </div>
               </div>
-              <div style={{ textAlign: 'center', padding: '16px', backgroundColor: '#f8f9fa', borderRadius: '6px' }}>
-                <h4 style={{ margin: '0 0 8px 0', color: '#6c757d', fontSize: '14px', fontWeight: '500' }}>{t('responses_count')}</h4>
-                <div style={{ fontSize: '32px', fontWeight: '700', color: '#495057' }}>
+              <div className="export-stat-card">
+                <h4 className="export-stat-label">{t('responses_count')}</h4>
+                <div className="export-stat-value">
                   {summary.statistics.responses}
                 </div>
               </div>
-              <div style={{ textAlign: 'center', padding: '16px', backgroundColor: '#f8f9fa', borderRadius: '6px' }}>
-                <h4 style={{ margin: '0 0 8px 0', color: '#6c757d', fontSize: '14px', fontWeight: '500' }}>{t('questions_count')}</h4>
-                <div style={{ fontSize: '32px', fontWeight: '700', color: '#495057' }}>
+              <div className="export-stat-card">
+                <h4 className="export-stat-label">{t('questions_count')}</h4>
+                <div className="export-stat-value">
                   {summary.study.questions}
                 </div>
               </div>
-              <div style={{ textAlign: 'center', padding: '16px', backgroundColor: '#f8f9fa', borderRadius: '6px' }}>
-                <h4 style={{ margin: '0 0 8px 0', color: '#6c757d', fontSize: '14px', fontWeight: '500' }}>{t('answered_questions_count')}</h4>
-                <div style={{ fontSize: '32px', fontWeight: '700', color: '#495057' }}>
+              <div className="export-stat-card">
+                <h4 className="export-stat-label">{t('answered_questions_count')}</h4>
+                <div className="export-stat-value">
                   {summary.statistics.questions_answered}
                 </div>
               </div>
@@ -263,274 +260,152 @@ function ExportManager({ studyId, studyName, onBack }) {
           </div>
 
           {/* Export-Optionen */}
-          <div style={{ 
-            border: '1px solid #dee2e6', 
-            padding: '24px', 
-            borderRadius: '8px', 
-            marginBottom: '24px',
-            backgroundColor: '#ffffff',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ 
-                color: '#495057', 
-                fontSize: '20px', 
-                fontWeight: '600', 
-                marginTop: '0',
-                marginBottom: '0',
-                marginRight: '12px'
-              }}>
+          <div className="export-section export-section-secondary">
+            <div className="export-options-header">
+              <h2 className="export-options-title">
+                <Download size={24} />
                 {t('export_options_title')}
               </h2>
               <button
                 onClick={() => setShowQGISGuide(true)}
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s ease'
-                }}
+                className="export-help-btn"
                 title={t('qgis_guide_tooltip')}
               >
-                ?
+                <HelpCircle size={18} />
               </button>
             </div>
-            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+            <div className="export-options-grid">
               <button
                 onClick={downloadGeoJSON}
                 disabled={loading || summary.statistics.responses === 0}
-                style={{
-                  padding: '12px 20px',
-                  backgroundColor: loading || summary.statistics.responses === 0 ? '#e9ecef' : '#495057',
-                  color: loading || summary.statistics.responses === 0 ? '#6c757d' : 'white',
-                  border: '1px solid',
-                  borderColor: loading || summary.statistics.responses === 0 ? '#dee2e6' : '#495057',
-                  borderRadius: '6px',
-                  cursor: loading || summary.statistics.responses === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s ease'
-                }}
+                className="export-btn export-btn-primary"
               >
-{t('geojson_for_qgis')}
+                <MapIcon size={20} />
+                {t('geojson_for_qgis')}
               </button>
               
               <button
                 onClick={downloadCSV}
                 disabled={loading || summary.statistics.responses === 0}
-                style={{
-                  padding: '12px 20px',
-                  backgroundColor: loading || summary.statistics.responses === 0 ? '#e9ecef' : '#6c757d',
-                  color: loading || summary.statistics.responses === 0 ? '#6c757d' : 'white',
-                  border: '1px solid',
-                  borderColor: loading || summary.statistics.responses === 0 ? '#dee2e6' : '#6c757d',
-                  borderRadius: '6px',
-                  cursor: loading || summary.statistics.responses === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s ease'
-                }}
+                className="export-btn export-btn-secondary"
               >
-{t('csv_for_excel_spss')}
+                <FileText size={20} />
+                {t('csv_for_excel_spss')}
               </button>
             </div>
             
             {summary.statistics.responses === 0 && (
-              <p style={{ color: '#dc3545', marginTop: '16px', fontStyle: 'italic', fontSize: '14px' }}>
+              <p className="export-no-data-msg">
                 {t('no_responses_available_export')}
               </p>
             )}
           </div>
 
           {/* Teilnehmer-Übersicht */}
-          <div style={{ 
-            border: '1px solid #dee2e6', 
-            padding: '24px', 
-            borderRadius: '8px',
-            backgroundColor: '#ffffff',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            marginBottom: '24px'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ 
-                color: '#495057', 
-                fontSize: '20px', 
-                fontWeight: '600', 
-                margin: '0'
-              }}>
+          <div className="export-section export-section-tertiary">
+            <div className="export-participants-header">
+              <h2 className="export-section-title text-tertiary export-section-title-compact">
+                <Users size={24} />
                 {t('participants_overview')} ({participants.length})
               </h2>
               <button
                 onClick={copyParticipantCodes}
                 disabled={participants.length === 0}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: participants.length === 0 ? '#e9ecef' : '#6c757d',
-                  color: participants.length === 0 ? '#6c757d' : 'white',
-                  border: '1px solid',
-                  borderColor: participants.length === 0 ? '#dee2e6' : '#6c757d',
-                  borderRadius: '6px',
-                  cursor: participants.length === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
+                className="export-btn export-btn-tertiary export-btn-auto-width"
               >
+                <Copy size={16} />
                 {t('copy_codes')}
               </button>
             </div>
 
             {participants.length === 0 ? (
-              <p style={{ color: '#6c757d', fontStyle: 'italic', margin: '0' }}>{t('no_participants')}</p>
+              <p className="export-empty-state">{t('no_participants')}</p>
             ) : (
-              <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '6px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <div className="export-table-container">
+                <table className="export-table">
                   <thead>
-                    <tr style={{ backgroundColor: '#f8f9fa' }}>
-                      <th style={{ padding: '12px', textAlign: 'left', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px', fontWeight: '600', color: '#495057' }}>Code</th>
-                      <th style={{ padding: '12px', textAlign: 'left', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px', fontWeight: '600', color: '#495057' }}>{t('limesurvey_id')}</th>
-                      <th style={{ padding: '12px', textAlign: 'left', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px', fontWeight: '600', color: '#495057' }}>{t('responses')}</th>
-                      <th style={{ padding: '12px', textAlign: 'left', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px', fontWeight: '600', color: '#495057' }}>{t('created')}</th>
-                      <th style={{ padding: '12px', textAlign: 'left', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px', fontWeight: '600', color: '#495057' }}>{t('export')}</th>
-                      <th style={{ padding: '12px', textAlign: 'left', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px', fontWeight: '600', color: '#495057' }}>{t('actions')}</th>
+                    <tr>
+                      <th>Code</th>
+                      <th>{t('limesurvey_id')}</th>
+                      <th>{t('responses')}</th>
+                      <th>{t('created')}</th>
+                      <th>{t('export')}</th>
+                      <th>{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {participants.map((participant, index) => (
-                      <tr key={participant.id} style={{ backgroundColor: index % 2 === 0 ? 'white' : '#f8f9fa' }}>
-                        <td style={{ padding: '12px', border: 'none', borderBottom: '1px solid #dee2e6', fontFamily: 'monospace', fontSize: '14px' }}>
+                      <tr key={participant.id} className={index % 2 === 0 ? 'export-table-row-even' : 'export-table-row-odd'}>
+                        <td className="export-code-cell">
                           {participant.code}
                         </td>
-                        <td style={{ padding: '12px', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px' }}>
+                        <td>
                           {editingLimeSurveyId === participant.id ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div className="export-input-group">
                               <input
                                 type="text"
                                 value={limeSurveyIdInput}
                                 onChange={(e) => setLimeSurveyIdInput(e.target.value)}
-                                style={{
-                                  padding: '4px 8px',
-                                  border: '1px solid #dee2e6',
-                                  borderRadius: '4px',
-                                  fontSize: '14px',
-                                  width: '120px'
-                                }}
+                                className="auth-input export-input-sm"
                                 placeholder="LimeSurvey ID"
                                 disabled={loading}
                               />
                               <button
                                 onClick={() => updateLimeSurveyId(participant.id, participant.code, limeSurveyIdInput)}
                                 disabled={loading}
-                                style={{
-                                  padding: '4px 8px',
-                                  backgroundColor: '#28a745',
-                                  color: 'white',
-                                  border: '1px solid #28a745',
-                                  borderRadius: '4px',
-                                  cursor: loading ? 'not-allowed' : 'pointer',
-                                  fontSize: '12px'
-                                }}
+                                className="export-btn-icon export-btn-success"
+                                title={t('save')}
                               >
-                                ✓
+                                <Check size={16} />
                               </button>
                               <button
                                 onClick={cancelEditingLimeSurveyId}
                                 disabled={loading}
-                                style={{
-                                  padding: '4px 8px',
-                                  backgroundColor: '#6c757d',
-                                  color: 'white',
-                                  border: '1px solid #6c757d',
-                                  borderRadius: '4px',
-                                  cursor: loading ? 'not-allowed' : 'pointer',
-                                  fontSize: '12px'
-                                }}
+                                className="export-btn-icon export-btn-danger"
+                                title={t('cancel')}
                               >
-                                ✗
+                                <X size={16} />
                               </button>
                             </div>
                           ) : (
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div className="export-input-group">
                               <span>{participant.limesurvey_id || '-'}</span>
                               <button
                                 onClick={() => startEditingLimeSurveyId(participant.id, participant.limesurvey_id)}
                                 disabled={loading}
-                                style={{
-                                  padding: '2px 6px',
-                                  backgroundColor: '#007bff',
-                                  color: 'white',
-                                  border: '1px solid #007bff',
-                                  borderRadius: '4px',
-                                  cursor: loading ? 'not-allowed' : 'pointer',
-                                  fontSize: '10px',
-                                  marginLeft: '8px'
-                                }}
+                                className="export-btn-icon export-btn-icon-transparent"
                                 title="LimeSurvey ID bearbeiten"
                               >
-                                ✎
+                                <Edit2 size={16} />
                               </button>
                             </div>
                           )}
                         </td>
-                        <td style={{ padding: '12px', border: 'none', borderBottom: '1px solid #dee2e6', textAlign: 'center', fontSize: '14px' }}>
+                        <td className="export-text-center">
                           {participant.response_count}
                         </td>
-                        <td style={{ padding: '12px', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px' }}>
+                        <td>
                           {new Date(participant.created_at).toLocaleDateString('de-DE')}
                         </td>
-                        <td style={{ padding: '12px', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px' }}>
+                        <td>
                           <button
                             onClick={() => downloadParticipantGeoJSON(participant.code)}
                             disabled={loading || participant.response_count === 0}
-                            style={{
-                              padding: '6px 12px',
-                              backgroundColor: loading || participant.response_count === 0 ? '#e9ecef' : '#28a745',
-                              color: loading || participant.response_count === 0 ? '#6c757d' : 'white',
-                              border: '1px solid',
-                              borderColor: loading || participant.response_count === 0 ? '#dee2e6' : '#28a745',
-                              borderRadius: '4px',
-                              cursor: loading || participant.response_count === 0 ? 'not-allowed' : 'pointer',
-                              fontSize: '12px',
-                              fontWeight: '500',
-                              transition: 'all 0.2s ease'
-                            }}
+                            className="export-btn-action export-btn-download"
                             title={participant.response_count === 0 ? t('no_responses_available') : t('download_geojson_for_participant')}
                           >
+                            <Download size={14} />
                             GeoJSON
                           </button>
                         </td>
-                        <td style={{ padding: '12px', border: 'none', borderBottom: '1px solid #dee2e6', fontSize: '14px' }}>
+                        <td>
                           <button
                             onClick={() => deleteParticipant(participant.id, participant.code)}
                             disabled={loading}
-                            style={{
-                              padding: '6px 12px',
-                              backgroundColor: loading ? '#e9ecef' : '#dc3545',
-                              color: loading ? '#6c757d' : 'white',
-                              border: '1px solid',
-                              borderColor: loading ? '#dee2e6' : '#dc3545',
-                              borderRadius: '4px',
-                              cursor: loading ? 'not-allowed' : 'pointer',
-                              fontSize: '12px',
-                              fontWeight: '500',
-                              transition: 'all 0.2s ease'
-                            }}
+                            className="export-btn-action export-btn-delete"
                             title={t('delete_participant')}
                           >
+                            <Trash2 size={14} />
                             {t('delete')}
                           </button>
                         </td>
@@ -543,41 +418,19 @@ function ExportManager({ studyId, studyName, onBack }) {
           </div>
 
           {/* {t('questions_overview')} */}
-          <div style={{ 
-            border: '1px solid #dee2e6', 
-            padding: '24px', 
-            borderRadius: '8px',
-            backgroundColor: '#ffffff',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}>
-            <h2 style={{ 
-              color: '#495057', 
-              fontSize: '20px', 
-              fontWeight: '600', 
-              marginTop: '0',
-              marginBottom: '20px'
-            }}>
+          <div className="export-section">
+            <h2 className="export-section-title">
               {t('questions_overview')}
             </h2>
             {summary.questions.map((question, index) => (
-              <div key={index} style={{
-                border: '1px solid #dee2e6',
-                padding: '16px',
-                marginBottom: '12px',
-                borderRadius: '6px',
-                backgroundColor: '#f8f9fa'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ flex: '1' }}>
-                    <h4 style={{ margin: '0 0 8px 0', color: '#495057', fontSize: '16px', fontWeight: '600' }}>
-                      {t('question_number')} {index + 1}: {question.id}
-                    </h4>
-                    <p style={{ margin: '0 0 12px 0', color: '#6c757d', fontSize: '14px' }}>{question.text}</p>
-                    <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: '#6c757d' }}>
-                      <span><strong>{t('question_type')}:</strong> {question.type}</span>
-                      {question.audioFile && <span><strong>{t('audio_file')}:</strong> {question.audioFile}</span>}
-                    </div>
-                  </div>
+              <div key={index} className="export-question-card">
+                <h4 className="export-question-header">
+                  {t('question_number')} {index + 1}: {question.id}
+                </h4>
+                <p className="export-question-text">{question.text}</p>
+                <div className="export-question-meta">
+                  <span><strong>{t('question_type')}:</strong> {question.type}</span>
+                  {question.audioFile && <span><strong>{t('audio_file')}:</strong> {question.audioFile}</span>}
                 </div>
               </div>
             ))}
@@ -587,74 +440,36 @@ function ExportManager({ studyId, studyName, onBack }) {
 
       {/* QGIS Visualisierungsanleitung Modal */}
       {showQGISGuide && (
-        <div style={{
-          position: 'fixed',
-          top: '0',
-          left: '0',
-          width: '100%',
-          height: '100%',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: '1000'
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '32px',
-            borderRadius: '12px',
-            maxWidth: '700px',
-            maxHeight: '80vh',
-            overflowY: 'auto',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
-            margin: '20px'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ 
-                color: '#2c3e50', 
-                fontSize: '24px', 
-                fontWeight: '600', 
-                margin: '0'
-              }}>
+        <div className="export-modal-overlay">
+          <div className="export-modal-content">
+            <div className="export-modal-header">
+              <h2 className="export-modal-title">
                 {t('qgis_guide_title')}
               </h2>
               <button
                 onClick={() => setShowQGISGuide(false)}
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  backgroundColor: '#dc3545',
-                  color: 'white',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '18px',
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
+                className="export-btn-close-modal"
               >
                 ×
               </button>
             </div>
             
-            <div style={{ lineHeight: '1.6', color: '#495057' }}>
-              <p style={{ marginBottom: '20px', fontSize: '16px', color: '#6c757d' }}>
+            <div className="export-modal-body">
+              <p className="export-modal-intro">
                 {t('qgis_guide_intro')}
               </p>
               
-              <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ color: '#495057', fontSize: '18px', fontWeight: '600', marginBottom: '12px' }}>
+              <div className="export-step-container">
+                <h3 className="export-step-title">
                   {t('qgis_step1_title')}
                 </h3>
-                <p style={{ marginBottom: '8px' }}>
+                <p className="export-step-text">
                   {t('qgis_step1_text')}{' '}
                   <a 
                     href="https://qgis.org/download/" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    style={{ color: '#007bff', textDecoration: 'none' }}
+                    className="export-link"
                   >
                     https://qgis.org/download/
                   </a>{' '}
@@ -662,83 +477,36 @@ function ExportManager({ studyId, studyName, onBack }) {
                 </p>
               </div>
               
-              <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ color: '#495057', fontSize: '18px', fontWeight: '600', marginBottom: '12px' }}>
+              <div className="export-step-container">
+                <h3 className="export-step-title">
                   {t('qgis_step2_title')}
                 </h3>
-                <p style={{ marginBottom: '8px' }}>
+                <p className="export-step-text">
                   {t('qgis_step2_text')}
                 </p>
               </div>
               
-              <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ color: '#495057', fontSize: '18px', fontWeight: '600', marginBottom: '12px' }}>
+              <div className="export-step-container">
+                <h3 className="export-step-title">
                   {t('qgis_step3_title')}
                 </h3>
-                <p style={{ marginBottom: '8px' }}>
+                <p className="export-step-text">
                   {t('qgis_step3_text')}
                 </p>
               </div>
-              
-              <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ color: '#495057', fontSize: '18px', fontWeight: '600', marginBottom: '12px' }}>
+
+              <div className="export-step-container">
+                <h3 className="export-step-title">
                   {t('qgis_step4_title')}
                 </h3>
-                <p style={{ marginBottom: '8px' }}>
+                <p className="export-step-text">
                   {t('qgis_step4_text')}
                 </p>
               </div>
-              
-              <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ color: '#495057', fontSize: '18px', fontWeight: '600', marginBottom: '12px' }}>
-                  {t('qgis_step5_title')}
-                </h3>
-                <p style={{ marginBottom: '8px' }}>
-                  {t('qgis_step5_text')}
-                </p>
-              </div>
-            </div>
-            
-            <div style={{ textAlign: 'center', marginTop: '24px' }}>
-              <button
-                onClick={() => setShowQGISGuide(false)}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-              >
-                {t('understood')}
-              </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Navigation */}
-      <div style={{ marginTop: '32px', textAlign: 'center' }}>
-        <button
-          onClick={onBack}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#6c757d',
-            color: 'white',
-            border: '1px solid #6c757d',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: '500',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          ← {t('back_to_studies')}
-        </button>
-      </div>
     </div>
   );
 }

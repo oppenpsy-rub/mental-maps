@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import './UserManagement.css';
+import { Check, X, RefreshCw, Users, AlertCircle } from 'lucide-react';
+import './index.css'; // Ensure we are using the global styles
 
 const UserManagement = () => {
   const { t } = useTranslation();
@@ -108,41 +109,63 @@ const UserManagement = () => {
 
   if (loading) {
     return (
-      <div className="user-management">
-        <h2>{t('admin.user_management')}</h2>
-        <div className="loading">{t('common.loading')}</div>
+      <div className="backend-container">
+        <div className="backend-card">
+          <h2 className="backend-title">{t('admin.user_management')}</h2>
+          <div className="backend-empty-state">
+             <div className="loading-spinner"></div>
+             {t('common.loading')}
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="user-management">
-      <h2>{t('admin.user_management')}</h2>
+    <div className="backend-container">
+      <h2 className="backend-title">
+        {t('admin.user_management')}
+      </h2>
       
-      {error && (
-        <div className="alert alert-error">
-          {error}
-          <button onClick={() => setError('')} className="alert-close">×</button>
-        </div>
-      )}
-      
-      {success && (
-        <div className="alert alert-success">
-          {success}
-          <button onClick={() => setSuccess('')} className="alert-close">×</button>
-        </div>
-      )}
+      <div className="backend-card">
+        {error && (
+          <div className="backend-alert backend-alert-error">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <AlertCircle size={20} />
+              {error}
+            </div>
+            <button onClick={() => setError('')} className="alert-close">×</button>
+          </div>
+        )}
+        
+        {success && (
+          <div className="backend-alert backend-alert-success">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Check size={20} />
+              {success}
+            </div>
+            <button onClick={() => setSuccess('')} className="alert-close">×</button>
+          </div>
+        )}
 
-      <div className="pending-users-section">
-        <h3>{t('admin.pending_registrations')} ({pendingUsers.length})</h3>
+        <div className="backend-card-header">
+          <h3 className="backend-card-title">
+            <Users size={20} />
+            {t('admin.pending_registrations')} ({pendingUsers.length})
+          </h3>
+          <button onClick={fetchPendingUsers} className="btn-secondary" title={t('admin.refresh')}>
+            <RefreshCw size={16} style={{ marginRight: '6px' }} />
+            {t('admin.refresh')}
+          </button>
+        </div>
         
         {pendingUsers.length === 0 ? (
-          <div className="no-pending-users">
+          <div className="backend-empty-state">
             <p>{t('admin.no_pending_registrations')}</p>
           </div>
         ) : (
-          <div className="users-table">
-            <table>
+          <div className="backend-table-container">
+            <table className="backend-table">
               <thead>
                 <tr>
                   <th>{t('admin.name')}</th>
@@ -161,21 +184,23 @@ const UserManagement = () => {
                     <td>{user.institution || '-'}</td>
                     <td>{user.department || '-'}</td>
                     <td>{formatDate(user.created_at)}</td>
-                    <td className="actions">
-                      <button
-                        onClick={() => approveUser(user.id, user.name)}
-                        className="btn btn-approve"
-                        title={t('admin.approve_user')}
-                      >
-                        ✓ {t('admin.approve')}
-                      </button>
-                      <button
-                        onClick={() => rejectUser(user.id, user.name)}
-                        className="btn btn-reject"
-                        title={t('admin.reject_user')}
-                      >
-                        ✗ {t('admin.reject')}
-                      </button>
+                    <td>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => approveUser(user.id, user.name)}
+                          className="btn-success"
+                          title={t('admin.approve_user')}
+                        >
+                          <Check size={16} /> {t('admin.approve')}
+                        </button>
+                        <button
+                          onClick={() => rejectUser(user.id, user.name)}
+                          className="btn-danger"
+                          title={t('admin.reject_user')}
+                        >
+                          <X size={16} /> {t('admin.reject')}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -183,12 +208,6 @@ const UserManagement = () => {
             </table>
           </div>
         )}
-      </div>
-      
-      <div className="refresh-section">
-        <button onClick={fetchPendingUsers} className="btn btn-secondary">
-          {t('admin.refresh')}
-        </button>
       </div>
     </div>
   );

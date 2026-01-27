@@ -814,7 +814,7 @@ process.on('SIGINT', async () => {
 
 // Server starten
 app.listen(PORT, process.env.HOST || '0.0.0.0', () => {
-  console.log(`Mental Map Tool Server läuft in Produktionsmodus auf Port ${PORT}`);
+  console.log(`VOICE Mental Maps Server läuft in Produktionsmodus auf Port ${PORT}`);
   console.log(`Datenbankverbindung: ${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`);
 });
 

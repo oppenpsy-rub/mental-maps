@@ -1,7 +1,7 @@
-# Mental Map Tool - Deployment Guide für RUB-Server
+# VOICE Mental Maps - Deployment Guide für RUB-Server
 
 ## Übersicht
-Diese Anleitung beschreibt das Deployment des Mental Map Tools auf den RUB-Server mittels FTP-Upload (Option A).
+Diese Anleitung beschreibt das Deployment von VOICE Mental Maps auf den RUB-Server mittels FTP-Upload (Option A).
 
 ## Voraussetzungen
 

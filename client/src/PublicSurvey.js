@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { CheckCircle, Lock, FileText, AlertTriangle, XCircle } from 'lucide-react';
 import i18n from './i18n';
 
 // Leaflet Icons für React
@@ -216,19 +217,23 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
     if (isPreview) {
       const demoCode = 'PREVIEW-' + Math.random().toString(36).substr(2, 6).toUpperCase();
       setParticipantCode(demoCode);
+      console.log('✅ Demo-Teilnehmer erstellt:', demoCode);
       return demoCode;
     }
     try {
+      console.log('🔍 Erstelle Teilnehmer für Studie:', { studyId, study_id: study?.id });
       const response = await axios.post('/api/participants', {
-        studyId: studyId
+        studyId: studyId || study?.id
       });
       const newCode = response.data.code;
+      console.log('✅ Teilnehmer-Code erhalten:', newCode);
       setParticipantCode(newCode);
       return newCode;
     } catch (error) {
-      console.error('Fehler beim Erstellen des Teilnehmers:', error);
+      console.error('❌ Fehler beim Erstellen des Teilnehmers:', error.response?.data || error.message);
       // Fallback: Generiere lokalen Teilnehmer-Code
       const fallbackCode = 'DEMO-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+      console.warn('⚠️ Verwende Fallback-Code:', fallbackCode);
       setParticipantCode(fallbackCode);
       return fallbackCode;
     }
@@ -293,7 +298,7 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
       `;
       
       content.innerHTML = `
-        <h2 style="color: #28a745; margin-bottom: 20px;">✅ ${t('survey_complete')}</h2>
+        <h2 style="color: #28a745; margin-bottom: 20px;">${t('survey_complete')}</h2>
         <p style="margin-bottom: 20px; font-size: 16px;">${t('thank_you')}</p>
         <p style="margin-bottom: 20px; font-weight: bold; font-size: 18px; color: #007bff;">
           ${t('participant_code')}: ${participantCode}
@@ -413,24 +418,21 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
         return;
       }
 
-      await axios.post('/api/responses', payload);
+      console.log('🔍 Sende Payload:', JSON.stringify(payload, null, 2));
+      const response = await axios.post('/api/responses', payload);
+      console.log('✅ Antwort gespeichert:', response.data);
       
       handleNextQuestion(updatedResponses);
     } catch (error) {
-      console.error('Fehler beim Speichern:', error);
-      alert(t('error_saving_response') || 'Fehler beim Speichern der Antwort. Bitte versuchen Sie es erneut.');
+      console.error('❌ Fehler beim Speichern:', error.response?.data || error.message);
+      const errorMsg = error.response?.data?.message || error.message || 'Fehler beim Speichern der Antwort. Bitte versuchen Sie es erneut.';
+      alert(t('error_saving_response') || errorMsg);
     }
   };
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        fontSize: '18px'
-      }}>
+      <div className="loading-screen">
         {t('loading_study')}
       </div>
     );
@@ -438,27 +440,12 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
 
   if (error) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        padding: '20px',
-        textAlign: 'center'
-      }}>
-        <h1 style={{ color: '#dc3545', marginBottom: '20px' }}>❌ {t('error')}</h1>
-        <p style={{ fontSize: '18px', marginBottom: '20px' }}>{error}</p>
+      <div className="d-flex flex-column justify-center align-center vh-100 p-3 text-center">
+        <h1 className="text-danger mb-4"><XCircle size={32} className="me-2" /> {t('error')}</h1>
+        <p className="text-lg mb-4">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
+          className="btn btn-primary"
         >
           {t('back')}
         </button>
@@ -468,44 +455,22 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
 
   if (showAccessCodeForm) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        padding: '20px',
-        backgroundColor: '#f8f9fa'
-      }}>
-        <div style={{
-          backgroundColor: 'white',
-          padding: '40px',
-          borderRadius: '10px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          maxWidth: '400px',
-          width: '100%'
-        }}>
-          <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>🔐 {t('access_code')}</h1>
-          <p style={{ textAlign: 'center', marginBottom: '30px', color: '#6c757d' }}>
+      <div className="d-flex flex-column justify-center align-center vh-100 p-3 bg-light">
+        <div className="card p-5 shadow-lg max-w-400 w-100">
+          <h1 className="text-center mb-4"><Lock size={32} className="me-2" /> {t('access_code')}</h1>
+          <p className="text-center mb-5 text-muted">
             {t('access_code_required')}
           </p>
           
           {error && (
-            <div style={{
-              padding: '10px',
-              backgroundColor: '#f8d7da',
-              color: '#721c24',
-              border: '1px solid #f5c6cb',
-              borderRadius: '5px',
-              marginBottom: '20px'
-            }}>
+            <div className="alert alert-danger mb-4">
               {error}
             </div>
           )}
           
           <form onSubmit={handleAccessCodeSubmit}>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+            <div className="mb-4">
+              <label className="d-block mb-2 fw-bold">
                 {t('enter_access_code')}
               </label>
               <input
@@ -513,29 +478,14 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
                 value={accessCodeInput}
                 onChange={(e) => setAccessCodeInput(e.target.value)}
                 placeholder={t('enter_access_code')}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #ced4da',
-                  borderRadius: '5px',
-                  fontSize: '16px'
-                }}
+                className="form-control"
                 autoFocus
               />
             </div>
             
             <button
               type="submit"
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                fontSize: '16px',
-                cursor: 'pointer'
-              }}
+              className="btn btn-primary w-100"
             >
               {t('continue')}
             </button>
@@ -547,13 +497,7 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
 
   if (!study) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        fontSize: '18px'
-      }}>
+      <div className="d-flex justify-center align-center vh-100 text-lg">
         {t('study_not_found')}
       </div>
     );
@@ -566,81 +510,127 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
   
   if (showConsent) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh',
-        padding: '20px',
-        backgroundColor: '#f8f9fa'
-      }}>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f5f7fa' }}>
+        {/* Consent Header */}
         <div style={{
-          backgroundColor: 'white',
-          padding: '40px',
-          borderRadius: '10px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          maxWidth: '800px',
-          width: '100%',
-          maxHeight: '90vh',
-          overflowY: 'auto'
+          background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
+          color: 'white',
+          padding: '40px 30px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
         }}>
-          <h1 style={{ textAlign: 'center', marginBottom: '30px', color: '#333' }}>
-            📝 {consentTitle}
-          </h1>
-          
-          <div style={{ 
-            backgroundColor: '#f8f9fa', 
-            padding: '20px', 
-            borderRadius: '8px', 
-            marginBottom: '30px',
-            lineHeight: '1.6',
-            color: '#495057',
-            whiteSpace: 'pre-wrap'
-          }}>
-            {consentText}
+          <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
+            <h1 style={{ margin: 0, fontSize: '2.2em', fontWeight: '700', marginBottom: '8px' }}>
+              {consentTitle}
+            </h1>
+            <p style={{ margin: 0, opacity: 0.9, fontSize: '1em' }}>
+              {t('please_read_carefully') || 'Bitte lesen Sie die Informationen sorgfältig durch'}
+            </p>
           </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <label style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '15px', 
-              cursor: 'pointer',
-              padding: '15px',
-              border: '1px solid #dee2e6',
-              borderRadius: '8px',
-              transition: 'background-color 0.2s',
-              backgroundColor: '#fff'
+        </div>
+
+        {/* Consent Content */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '800px',
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {/* Consent Text */}
+            <div style={{
+              flex: 1,
+              padding: '32px',
+              overflowY: 'auto',
+              maxHeight: '60vh',
+              borderBottom: '1px solid #e5e7eb',
+              backgroundColor: '#f9fafb'
             }}>
-              <input
-                type="checkbox"
-                style={{ transform: 'scale(1.5)', cursor: 'pointer' }}
-                onChange={(e) => {
-                  setConsentChecked(e.target.checked);
-                }}
-              />
-              <span style={{ fontSize: '18px', fontWeight: '500' }}>{t('consent_accept')}</span>
-            </label>
-            
-            <button
-              disabled={!consentChecked}
-              onClick={() => setConsentAccepted(true)}
-              style={{
-                padding: '15px 30px',
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
+              <div style={{
+                whiteSpace: 'pre-wrap',
+                lineHeight: '1.7',
+                color: '#4b5563',
+                fontSize: '15px',
+                fontWeight: '400'
+              }}>
+                {consentText}
+              </div>
+            </div>
+
+            {/* Consent Actions */}
+            <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Checkbox */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '12px',
+                padding: '16px',
                 borderRadius: '8px',
-                fontSize: '18px',
-                fontWeight: 'bold',
-                cursor: consentChecked ? 'pointer' : 'not-allowed',
-                opacity: consentChecked ? 1 : 0.5,
-                transition: 'all 0.2s'
+                backgroundColor: '#f0f4f8',
+                border: '1px solid #d9e2ec',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
               }}
-            >
-              {t('consent_continue')}
-            </button>
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = '#e8eef7';
+                e.currentTarget.style.borderColor = '#c7d4e8';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = '#f0f4f8';
+                e.currentTarget.style.borderColor = '#d9e2ec';
+              }}>
+                <input
+                  type="checkbox"
+                  checked={consentChecked}
+                  onChange={(e) => setConsentChecked(e.target.checked)}
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    minWidth: '20px',
+                    cursor: 'pointer',
+                    marginTop: '2px'
+                  }}
+                />
+                <span style={{ fontSize: '15px', fontWeight: '500', color: '#2c3e50', lineHeight: '1.5' }}>
+                  {t('consent_accept')}
+                </span>
+              </label>
+
+              {/* Start Button */}
+              <button
+                disabled={!consentChecked}
+                onClick={() => setConsentAccepted(true)}
+                style={{
+                  width: '100%',
+                  padding: '14px 24px',
+                  backgroundColor: consentChecked ? '#2c3e50' : '#d1d5db',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: consentChecked ? 'pointer' : 'not-allowed',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  if (consentChecked) {
+                    e.target.style.backgroundColor = '#243342';
+                    e.target.style.boxShadow = '0 4px 12px rgba(44, 62, 80, 0.2)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (consentChecked) {
+                    e.target.style.backgroundColor = '#2c3e50';
+                    e.target.style.boxShadow = 'none';
+                  }
+                }}
+              >
+                {t('start_survey')}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -648,20 +638,10 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
   }
 
   return (
-    <div className="App">
+    <div className="App public-survey">
       {isPreview && (
-        <div style={{
-          backgroundColor: '#ffc107',
-          color: '#212529',
-          padding: '10px',
-          textAlign: 'center',
-          fontWeight: 'bold',
-          borderBottom: '1px solid #dee2e6',
-          position: 'sticky',
-          top: 0,
-          zIndex: 9999
-        }}>
-          ⚠️ {t('preview_mode') || 'VORSCHAU-MODUS - Daten werden nicht gespeichert'}
+        <div className="preview-banner">
+          <AlertTriangle size={16} className="me-2" /> {t('preview_mode') || 'VORSCHAU-MODUS - Daten werden nicht gespeichert'}
         </div>
       )}
       {/* Ausblendbare Anleitung */}
@@ -685,7 +665,7 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
               <li><strong>{t('instruction_5')}</strong></li>
               <li>{t('instruction_6')}</li>
             </ol>
-            <p className="tip">💡 {t('drawing_tip')}</p>
+            <p className="tip">{t('drawing_tip')}</p>
           </div>
         </div>
       )}
@@ -694,7 +674,7 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
       {currentQuestion && currentQuestion.audioFile && (
         <div className="audio-panel">
           <div className="audio-content">
-            <span className="audio-label">🎵 Audio-Wahrnehmung:</span>
+            <span className="audio-label">{t('audio_perception_label') || 'Audio-Wahrnehmung:'}</span>
             <audio controls className="audio-player">
               <source src={`/uploads/audio/${currentQuestion.audioFile}`} type="audio/mpeg" />
               <source src={`/uploads/audio/${currentQuestion.audioFile}`} type="audio/wav" />
@@ -706,7 +686,7 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
         </div>
       )}
 
-      <div className="app-header">
+      <div className="app-header survey-header">
         <div className="header-left">
           {currentQuestion && (
             <div className="question-info">
@@ -743,72 +723,80 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
                 }}
                 title={t('copy_code')}
               >
-                📋
+                {t('copy_code')}
               </button>
             </div>
           )}
           
-          <div className="status-info">
-            <span className="polygon-count">
-              {polygons.length} {
-                currentQuestion?.type === 'point_marking' 
-                  ? (polygons.length !== 1 ? 'Punkte' : 'Punkt')
-                  : (polygons.length !== 1 ? t('polygons') : t('polygon'))
-              }
-            </span>
-            <span className={`drawing-status ${isDrawing ? 'active' : ''}`}>
-              {isDrawing ? (currentQuestion?.type === 'point_marking' ? 'Markieren aktiv' : t('drawing_active')) : t('ready')}
-            </span>
-          </div>
+          {['map_drawing', 'point_marking', 'audio_perception'].includes(currentQuestion?.type) && (
+            <div className="status-info">
+              <span className="polygon-count">
+                {polygons.length} {
+                  currentQuestion?.type === 'point_marking' 
+                    ? (polygons.length !== 1 ? t('points') : t('point'))
+                    : (polygons.length !== 1 ? t('polygons') : t('polygon'))
+                }
+              </span>
+              <span className={`drawing-status ${isDrawing ? 'active' : ''}`}>
+                {isDrawing ? (currentQuestion?.type === 'point_marking' ? t('marking_active') : t('drawing_active')) : t('ready')}
+              </span>
+            </div>
+          )}
           
-          <div className="action-buttons">
-            <button
-              className="btn-instructions"
-              onClick={() => setShowInstructions(!showInstructions)}
-              title={t('show_hide_instructions')}
-            >
-              ?
-            </button>
-          </div>
+          {['map_drawing', 'point_marking', 'audio_perception'].includes(currentQuestion?.type) && (
+            <div className="action-buttons">
+              <button
+                className="btn-instructions"
+                onClick={() => setShowInstructions(!showInstructions)}
+                title={t('show_hide_instructions')}
+              >
+                ?
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Content Area - Map or Survey Question */}
-      {['map_drawing', 'point_marking', 'audio_perception'].includes(currentQuestion?.type || 'map_drawing') ? (
-        <div className="map-container">
-          <MapContainer
-            center={study.config?.mapConfig?.center || [46.5, 2.5]}
-            zoom={study.config?.mapConfig?.zoom || 6}
-            style={{ height: '100%', width: '100%' }}
-            scrollWheelZoom={study.config?.mapConfig?.allowZoom !== false}
-            doubleClickZoom={study.config?.mapConfig?.allowZoom !== false}
-            touchZoom={study.config?.mapConfig?.allowZoom !== false}
-            boxZoom={study.config?.mapConfig?.allowZoom !== false}
-            keyboard={study.config?.mapConfig?.allowZoom !== false}
-            zoomControl={study.config?.mapConfig?.allowZoom !== false}
-            minZoom={1}
-            maxZoom={20}
-            zoomSnap={0.25}
-            zoomDelta={0.25}
-            wheelPxPerZoomLevel={120}
-          >
-            <TileLayer
-              attribution={getTileLayerAttribution(study.config?.mapConfig?.basemap || 'openstreetmap')}
-              url={getTileLayerUrl(study.config?.mapConfig?.basemap || 'openstreetmap')}
-            />
-            <MapDrawingLayer 
-              onPolygonsChange={setPolygons}
-              onDrawingChange={setIsDrawing}
-              currentQuestion={currentQuestion}
-            />
-          </MapContainer>
-        </div>
-      ) : (
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px', backgroundColor: '#f8f9fa' }}>
+      <div className="content-shell">
+        {/* Content Area - Map or Survey Question */}
+        {['map_drawing', 'point_marking', 'audio_perception'].includes(currentQuestion?.type || 'map_drawing') ? (
+          <div className="map-container" style={{ display: 'flex', flexDirection: 'column', flex: '1 1 0', minHeight: '400px', position: 'relative' }}>
+            <div style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0 }}>
+              <MapContainer
+                center={study?.config?.mapConfig?.center || [46.5, 2.5]}
+                zoom={study?.config?.mapConfig?.zoom || 6}
+                className="map-full"
+                style={{ height: '100%', width: '100%', display: 'block' }}
+                scrollWheelZoom={study?.config?.mapConfig?.allowZoom !== false}
+                doubleClickZoom={study?.config?.mapConfig?.allowZoom !== false}
+                touchZoom={study?.config?.mapConfig?.allowZoom !== false}
+                boxZoom={study?.config?.mapConfig?.allowZoom !== false}
+                keyboard={study?.config?.mapConfig?.allowZoom !== false}
+                zoomControl={study?.config?.mapConfig?.allowZoom !== false}
+                minZoom={1}
+                maxZoom={20}
+                zoomSnap={0.25}
+                zoomDelta={0.25}
+                wheelPxPerZoomLevel={120}
+              >
+                <TileLayer
+                  attribution={getTileLayerAttribution(study?.config?.mapConfig?.basemap || 'openstreetmap')}
+                  url={getTileLayerUrl(study?.config?.mapConfig?.basemap || 'openstreetmap')}
+                />
+                <MapDrawingLayer 
+                  onPolygonsChange={setPolygons}
+                  onDrawingChange={setIsDrawing}
+                  currentQuestion={currentQuestion}
+                />
+              </MapContainer>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-auto p-3 bg-light">
           {currentQuestion?.type === 'text_input' && (
-             <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+             <div className="question-form-wrapper">
                 <textarea 
-                   value={answer || ''}
+                   value={answer || ''} 
                    onChange={(e) => {
                      const val = e.target.value;
                      if (!currentQuestion.maxLength || val.length <= currentQuestion.maxLength) {
@@ -816,11 +804,11 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
                      }
                    }}
                    maxLength={currentQuestion.maxLength}
-                   style={{ width: '100%', minHeight: '150px', padding: '15px', borderRadius: '8px', border: '1px solid #ced4da', fontSize: '16px' }}
+                   className="textarea-input"
                    placeholder={t('your_answer') || 'Ihre Antwort...'}
                 />
                 {currentQuestion.maxLength && (
-                  <div style={{ textAlign: 'right', fontSize: '12px', color: '#6c757d', marginTop: '5px' }}>
+                  <div className="char-counter">
                     {(answer || '').length} / {currentQuestion.maxLength} {t('characters') || 'Zeichen'}
                   </div>
                 )}
@@ -828,7 +816,7 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
           )}
 
           {currentQuestion?.type === 'numeric_input' && (
-             <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+             <div className="question-form-wrapper">
                 <input 
                    type="text"
                    inputMode="numeric"
@@ -843,11 +831,11 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
                        }
                      }
                    }}
-                   style={{ width: '100%', padding: '15px', borderRadius: '8px', border: '1px solid #ced4da', fontSize: '16px' }}
+                   className="form-control"
                    placeholder={t('your_number') || 'Bitte Zahl eingeben...'}
                 />
                 {currentQuestion.maxLength && (
-                  <div style={{ textAlign: 'right', fontSize: '12px', color: '#6c757d', marginTop: '5px' }}>
+                  <div className="char-counter">
                     {(answer || '').length} / {currentQuestion.maxLength} {t('digits') || 'Ziffern'}
                   </div>
                 )}
@@ -855,66 +843,70 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
           )}
 
           {currentQuestion?.type === 'single_choice' && (
-             <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+             <div className="question-form-wrapper">
                 {(currentQuestion.options || []).map((option, idx) => (
-                   <div key={idx} style={{ marginBottom: '15px', padding: '15px', border: '1px solid #dee2e6', borderRadius: '8px', cursor: 'pointer', backgroundColor: answer === option ? '#e7f1ff' : 'white', transition: 'background-color 0.2s' }} onClick={() => setAnswer(option)}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', margin: 0, width: '100%' }}>
-                         <input 
-                            type="radio" 
-                            name="question_option" 
-                            value={option} 
-                            checked={answer === option} 
-                            onChange={(e) => setAnswer(e.target.value)} 
-                         />
-                         <span style={{ fontSize: '16px' }}>{option}</span>
-                      </label>
+                   <div 
+                      key={idx} 
+                      className={`choice-option ${answer === option ? 'selected' : ''}`}
+                      onClick={() => setAnswer(option)}
+                   >
+                      <input 
+                         type="radio" 
+                         name="question_option" 
+                         value={option} 
+                         checked={answer === option} 
+                         onChange={(e) => setAnswer(e.target.value)} 
+                      />
+                      <label>{option}</label>
                    </div>
                 ))}
              </div>
           )}
 
           {currentQuestion?.type === 'multiple_choice' && (
-             <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+             <div className="question-form-wrapper">
                 {(currentQuestion.options || []).map((option, idx) => (
-                   <div key={idx} style={{ marginBottom: '15px', padding: '15px', border: '1px solid #dee2e6', borderRadius: '8px', cursor: 'pointer', backgroundColor: (answer || []).includes(option) ? '#e7f1ff' : 'white', transition: 'background-color 0.2s' }} 
-                        onClick={() => {
+                   <div 
+                      key={idx} 
+                      className={`choice-option ${(answer || []).includes(option) ? 'selected' : ''}`}
+                      onClick={() => {
                            const currentAnswers = Array.isArray(answer) ? answer : [];
                            if (currentAnswers.includes(option)) {
                               setAnswer(currentAnswers.filter(a => a !== option));
                            } else {
                               setAnswer([...currentAnswers, option]);
                            }
-                        }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', margin: 0, width: '100%' }}>
-                         <input 
-                            type="checkbox" 
-                            value={option} 
-                            checked={(answer || []).includes(option)} 
-                            onChange={() => {}} // Handled by div click
-                         />
-                         <span style={{ fontSize: '16px' }}>{option}</span>
-                      </label>
+                       }}
+                   >
+                      <input 
+                         type="checkbox" 
+                         value={option} 
+                         checked={(answer || []).includes(option)} 
+                         onChange={() => {}}
+                      />
+                      <label>{option}</label>
                    </div>
                 ))}
              </div>
           )}
 
           {currentQuestion?.type === 'likert' && (
-             <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'nowrap', overflowX: 'auto', paddingBottom: '10px' }}>
+             <div className="question-form-wrapper">
+                <div className="likert-container">
                   {(currentQuestion.options || []).map((option, idx) => (
-                    <div key={idx} style={{ flex: 1, minWidth: '80px', textAlign: 'center' }}>
-                      <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', gap: '10px', height: '100%' }}>
-                         <input 
-                            type="radio" 
-                            name="likert_option" 
-                            value={option} 
-                            checked={answer === option} 
-                            onChange={(e) => setAnswer(e.target.value)}
-                            style={{ width: '20px', height: '20px', cursor: 'pointer' }}
-                         />
-                         <span style={{ fontSize: '14px', wordBreak: 'break-word' }}>{option}</span>
-                      </label>
+                    <div 
+                      key={idx} 
+                      className={`likert-option ${answer === option ? 'selected' : ''}`}
+                      onClick={() => setAnswer(option)}
+                    >
+                      <input 
+                         type="radio" 
+                         name="likert_option" 
+                         value={option} 
+                         checked={answer === option} 
+                         onChange={(e) => setAnswer(e.target.value)}
+                      />
+                      <span>{option}</span>
                     </div>
                   ))}
                 </div>
@@ -922,10 +914,12 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
           )}
 
           {currentQuestion?.type === 'slider' && (
-             <div style={{ padding: '40px 20px', maxWidth: '600px', margin: '0 auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
-                   <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#007bff' }}>{answer ?? currentQuestion.min ?? 0}</span>
-                </div>
+             <div className="p-5 max-w-600 mx-auto">
+                {currentQuestion.showValue !== false && (
+                  <div className="d-flex justify-center mb-4">
+                     <span className="text-2xl fw-bold text-primary">{answer ?? currentQuestion.min ?? 0}</span>
+                  </div>
+                )}
                 <input 
                    type="range" 
                    min={currentQuestion.min ?? 0}
@@ -933,9 +927,9 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
                    step={currentQuestion.step ?? 1}
                    value={answer ?? currentQuestion.min ?? 0}
                    onChange={(e) => setAnswer(Number(e.target.value))}
-                   style={{ width: '100%', cursor: 'pointer' }}
+                   className="w-100 cursor-pointer"
                 />
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', color: '#6c757d', fontSize: '14px' }}>
+                <div className="d-flex justify-between mt-2 text-muted text-small">
                    <span>{currentQuestion.leftLabel || (currentQuestion.min ?? 0)}</span>
                    <span>{currentQuestion.rightLabel || (currentQuestion.max ?? 100)}</span>
                 </div>
@@ -943,27 +937,28 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
           )}
 
           {currentQuestion?.type === 'date' && (
-             <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
+             <div className="p-3 max-w-400 mx-auto">
                 <input 
                    type="date" 
                    value={answer || ''}
                    onChange={(e) => setAnswer(e.target.value)}
-                   style={{ width: '100%', padding: '15px', borderRadius: '8px', border: '1px solid #ced4da', fontSize: '16px' }}
+                   className="form-control p-3"
                 />
              </div>
           )}
           
           {currentQuestion?.type === 'instruction' && (
-             <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto', textAlign: 'center', fontSize: '18px', lineHeight: '1.6', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+             <div className="p-5 max-w-800 mx-auto text-center text-lg leading-relaxed bg-white rounded shadow-sm">
                 <div dangerouslySetInnerHTML={{ __html: (currentQuestion.text || '').replace(/\n/g, '<br/>') }} />
              </div>
           )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       {/* Aktions-Panel am unteren Rand */}
       <div className="action-panel">
-        <div className="action-content" style={{ justifyContent: ['map_drawing', 'point_marking'].includes(currentQuestion?.type) ? 'space-between' : 'flex-end' }}>
+        <div className={`action-content justify-${['map_drawing', 'point_marking'].includes(currentQuestion?.type) ? 'between' : 'end'}`}>
           {['map_drawing', 'point_marking'].includes(currentQuestion?.type) && (
             <>
               {!isDrawing ? (
@@ -993,10 +988,9 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
           )}
           
           <button
-            className="action-button primary"
+            className="action-button primary ml-auto"
             onClick={handleSaveResponse}
             disabled={['map_drawing', 'point_marking'].includes(currentQuestion?.type) && polygons.length === 0}
-            style={{ marginLeft: 'auto' }}
           >
             {currentQuestion?.type === 'instruction' ? t('continue') || 'Weiter' : t('save_and_continue')}
           </button>

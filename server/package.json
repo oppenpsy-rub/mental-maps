@@ -1,7 +1,7 @@
 {
-  "name": "mentalmap-server",
+  "name": "voice-mental-maps-server",
   "version": "1.0.0",
-  "description": "Mental Map Tool Backend",
+  "description": "VOICE Mental Maps Backend",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

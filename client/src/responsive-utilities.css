@@ -1,0 +1,333 @@
+/* 
+  Responsive Utility Classes
+  Mobile-first approach with responsive helpers
+*/
+
+/* Display Utilities */
+.d-none { display: none; }
+.d-block { display: block; }
+.d-flex { display: flex; }
+.d-grid { display: grid; }
+.d-inline-flex { display: inline-flex; }
+
+/* Mobile-first visibility */
+.hidden-mobile { display: none; }
+.hidden-tablet { display: block; }
+.hidden-desktop { display: block; }
+
+@media (min-width: 768px) {
+  .hidden-mobile { display: block; }
+  .hidden-tablet { display: none; }
+}
+
+@media (min-width: 1024px) {
+  .hidden-tablet { display: block; }
+  .hidden-desktop { display: none; }
+}
+
+/* Responsive Padding */
+.p-mobile { padding: 0.75rem; }
+.p-tablet { padding: 1rem; }
+.p-desktop { padding: 1.5rem; }
+
+@media (min-width: 768px) {
+  .p-mobile { padding: 1rem; }
+  .p-tablet { padding: 1.25rem; }
+  .p-desktop { padding: 2rem; }
+}
+
+@media (min-width: 1024px) {
+  .p-mobile { padding: 1.25rem; }
+  .p-tablet { padding: 1.5rem; }
+  .p-desktop { padding: 2.5rem; }
+}
+
+/* Responsive Margin */
+.mx-auto-mobile { margin-left: auto; margin-right: auto; }
+.my-mobile { margin-top: 0.75rem; margin-bottom: 0.75rem; }
+.my-tablet { margin-top: 1rem; margin-bottom: 1rem; }
+.my-desktop { margin-top: 1.5rem; margin-bottom: 1.5rem; }
+
+@media (min-width: 768px) {
+  .my-mobile { margin-top: 1rem; margin-bottom: 1rem; }
+  .my-tablet { margin-top: 1.5rem; margin-bottom: 1.5rem; }
+  .my-desktop { margin-top: 2rem; margin-bottom: 2rem; }
+}
+
+@media (min-width: 1024px) {
+  .my-mobile { margin-top: 1.5rem; margin-bottom: 1.5rem; }
+  .my-tablet { margin-top: 2rem; margin-bottom: 2rem; }
+  .my-desktop { margin-top: 3rem; margin-bottom: 3rem; }
+}
+
+/* Responsive Font Sizes */
+.text-xs-mobile { font-size: 12px; }
+.text-sm-mobile { font-size: 14px; }
+.text-base-mobile { font-size: 16px; }
+.text-lg-mobile { font-size: 18px; }
+
+@media (min-width: 768px) {
+  .text-xs-mobile { font-size: 13px; }
+  .text-sm-mobile { font-size: 15px; }
+  .text-base-mobile { font-size: 17px; }
+  .text-lg-mobile { font-size: 20px; }
+}
+
+@media (min-width: 1024px) {
+  .text-xs-mobile { font-size: 14px; }
+  .text-sm-mobile { font-size: 16px; }
+  .text-base-mobile { font-size: 18px; }
+  .text-lg-mobile { font-size: 24px; }
+}
+
+/* Responsive Gaps */
+.gap-xs { gap: 0.5rem; }
+.gap-sm { gap: 0.75rem; }
+.gap-md { gap: 1rem; }
+.gap-lg { gap: 1.5rem; }
+.gap-xl { gap: 2rem; }
+
+@media (min-width: 768px) {
+  .gap-xs { gap: 0.75rem; }
+  .gap-sm { gap: 1rem; }
+  .gap-md { gap: 1.25rem; }
+  .gap-lg { gap: 2rem; }
+  .gap-xl { gap: 2.5rem; }
+}
+
+/* Responsive Width */
+.w-full { width: 100%; }
+.w-auto { width: auto; }
+.w-screen { width: 100vw; }
+
+.max-w-xs { max-width: 300px; }
+.max-w-sm { max-width: 400px; }
+.max-w-md { max-width: 600px; }
+.max-w-lg { max-width: 800px; }
+.max-w-xl { max-width: 1000px; }
+.max-w-2xl { max-width: 1200px; }
+.max-w-3xl { max-width: 1400px; }
+
+@media (max-width: 640px) {
+  .max-w-xs { max-width: 100%; }
+  .max-w-sm { max-width: 100%; }
+  .max-w-md { max-width: 100%; }
+  .max-w-lg { max-width: 100%; }
+  .max-w-xl { max-width: 100%; }
+  .max-w-2xl { max-width: 100%; }
+  .max-w-3xl { max-width: 100%; }
+}
+
+/* Responsive Height */
+.h-auto { height: auto; }
+.h-screen { height: 100vh; }
+.h-screen-minus-header { height: calc(100vh - 64px); }
+
+@media (max-height: 600px) {
+  .h-screen { height: auto; }
+  .h-screen-minus-header { height: auto; }
+}
+
+/* Responsive Grid */
+.grid-auto { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.grid-1 { grid-template-columns: 1fr; }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+@media (max-width: 640px) {
+  .grid-auto { grid-template-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .grid-auto { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Responsive Flex Direction */
+.flex-col-mobile { flex-direction: column; }
+.flex-row-mobile { flex-direction: row; }
+
+@media (min-width: 768px) {
+  .flex-col-mobile { flex-direction: row; }
+  .flex-row-mobile { flex-direction: column; }
+}
+
+/* Responsive Alignment */
+.justify-between-mobile { justify-content: space-between; }
+.justify-center-mobile { justify-content: center; }
+.items-center-mobile { align-items: center; }
+
+@media (max-width: 640px) {
+  .justify-between-mobile { justify-content: flex-start; }
+  .justify-center-mobile { justify-content: flex-start; }
+}
+
+/* Responsive Text Alignment */
+.text-left-mobile { text-align: left; }
+.text-center-mobile { text-align: center; }
+.text-right-mobile { text-align: right; }
+
+@media (max-width: 640px) {
+  .text-left-mobile { text-align: left; }
+  .text-center-mobile { text-align: center; }
+  .text-right-mobile { text-align: center; }
+}
+
+/* Responsive Overflow */
+.overflow-hidden-mobile { overflow: hidden; }
+.overflow-auto-mobile { overflow: auto; }
+
+@media (max-width: 640px) {
+  .overflow-hidden-mobile { overflow: hidden; }
+  .overflow-auto-mobile { overflow: auto; }
+}
+
+/* Responsive Position */
+.static-mobile { position: static; }
+.relative-mobile { position: relative; }
+.absolute-mobile { position: absolute; }
+.fixed-mobile { position: fixed; }
+
+@media (max-width: 768px) {
+  .fixed-mobile { position: absolute; }
+}
+
+/* Container Queries Fallback */
+.container-fluid {
+  width: 100%;
+  padding-left: max(12px, 3vw);
+  padding-right: max(12px, 3vw);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container-sm {
+  width: 100%;
+  max-width: 640px;
+  padding-left: max(12px, 2vw);
+  padding-right: max(12px, 2vw);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container-md {
+  width: 100%;
+  max-width: 800px;
+  padding-left: max(12px, 3vw);
+  padding-right: max(12px, 3vw);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container-lg {
+  width: 100%;
+  max-width: 1000px;
+  padding-left: max(12px, 3vw);
+  padding-right: max(12px, 3vw);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container-xl {
+  width: 100%;
+  max-width: 1200px;
+  padding-left: max(12px, 3vw);
+  padding-right: max(12px, 3vw);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container-2xl {
+  width: 100%;
+  max-width: 1400px;
+  padding-left: max(12px, 3vw);
+  padding-right: max(12px, 3vw);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Aspect Ratio (for images/maps) */
+.aspect-square {
+  aspect-ratio: 1 / 1;
+}
+
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-4-3 {
+  aspect-ratio: 4 / 3;
+}
+
+/* Touch-friendly spacing */
+@media (hover: none) and (pointer: coarse) {
+  .touch-p-sm { padding: 0.75rem; }
+  .touch-p-md { padding: 1rem; }
+  .touch-p-lg { padding: 1.5rem; }
+  
+  .touch-gap-sm { gap: 0.75rem; }
+  .touch-gap-md { gap: 1rem; }
+  .touch-gap-lg { gap: 1.5rem; }
+  
+  .touch-text-base { font-size: 16px; }
+  .touch-text-lg { font-size: 18px; }
+}
+
+/* Scroll Snap */
+.snap-x {
+  scroll-snap-type: x mandatory;
+  overflow-x: auto;
+}
+
+.snap-y {
+  scroll-snap-type: y mandatory;
+  overflow-y: auto;
+}
+
+.snap-child {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  flex-shrink: 0;
+}
+
+/* Safe Area (for notched devices) */
+.safe-inset {
+  padding: max(12px, env(safe-area-inset-top)) 
+           max(12px, env(safe-area-inset-right)) 
+           max(12px, env(safe-area-inset-bottom)) 
+           max(12px, env(safe-area-inset-left));
+}
+
+/* Clamp-based responsive values */
+.text-clamp-sm {
+  font-size: clamp(14px, 2vw, 16px);
+}
+
+.text-clamp-md {
+  font-size: clamp(16px, 2.5vw, 18px);
+}
+
+.text-clamp-lg {
+  font-size: clamp(18px, 3vw, 28px);
+}
+
+.text-clamp-xl {
+  font-size: clamp(28px, 5vw, 48px);
+}
+
+.p-clamp-sm {
+  padding: clamp(12px, 2vw, 16px);
+}
+
+.p-clamp-md {
+  padding: clamp(16px, 3vw, 24px);
+}
+
+.p-clamp-lg {
+  padding: clamp(24px, 5vw, 40px);
+}

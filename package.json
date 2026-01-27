@@ -1,7 +1,7 @@
 {
-  "name": "mentalmap-prototype",
+  "name": "voice-mental-maps",
   "version": "1.0.0",
-  "description": "Mental Map Tool - Prototype for linguistic perception mapping",
+  "description": "VOICE Mental Maps (Variation Observed In Community Evaluations) - Tool for linguistic perception mapping",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",

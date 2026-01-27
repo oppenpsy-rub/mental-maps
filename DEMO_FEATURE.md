@@ -1,7 +1,7 @@
 # Demo Study Feature
 
 ## Übersicht
-Die Startseite der Mental Map Anwendung zeigt jetzt eine Demo-Studie anstelle einer echten Studie aus der Datenbank. Dies ermöglicht es Interessenten, das System auszuprobieren, ohne echte Forschungsdaten zu beeinflussen.
+Die Startseite der VOICE Mental Maps Anwendung zeigt jetzt eine Demo-Studie anstelle einer echten Studie aus der Datenbank. Dies ermöglicht es Interessenten, das System auszuprobieren, ohne echte Forschungsdaten zu beeinflussen.
 
 ## Implementierung
 
@@ -11,7 +11,7 @@ Die Startseite der Mental Map Anwendung zeigt jetzt eine Demo-Studie anstelle ei
 ### Demo-Studie Struktur
 Die Demo-Studie (`DEMO_STUDY`) enthält:
 - **ID**: "demo-study"
-- **Name**: "Demo: Mental Map Tool"
+- **Name**: "Demo: VOICE Mental Maps"
 - **Beschreibung**: Erklärt, dass es sich um eine Demo handelt
 - **Beispielfragen**: 3 Fragen zu verschiedenen Themen (Lieblingsorte, Arbeitsplatz, Freizeitaktivitäten)
 

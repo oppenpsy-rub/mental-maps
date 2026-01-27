@@ -450,12 +450,12 @@ function StudyManagerUnified() {
         <div style={{ 
           marginBottom: '10px', 
           padding: '10px', 
-          backgroundColor: '#e3f2fd', 
+          backgroundColor: '#ecf0f1', 
           borderRadius: '6px',
           fontSize: '14px',
-          color: '#1565c0'
+          color: '#2c3e50'
         }}>
-          💡 <strong>{t('map_config_tip')}</strong>
+          <strong>{t('map_config_tip')}</strong>
         </div>
         <div style={{ height: '400px', width: '100%', borderRadius: '6px', border: '1px solid #ced4da' }}>
           <MapContainer
@@ -509,12 +509,12 @@ function StudyManagerUnified() {
     };
 
     const variants = {
-      primary: { backgroundColor: '#007bff', color: 'white', border: '1px solid #007bff' },
-      success: { backgroundColor: '#28a745', color: 'white', border: '1px solid #28a745' },
-      danger: { backgroundColor: '#dc3545', color: 'white', border: '1px solid #dc3545' },
-      warning: { backgroundColor: '#ffc107', color: '#212529', border: '1px solid #ffc107' },
-      secondary: { backgroundColor: '#6c757d', color: 'white', border: '1px solid #6c757d' },
-      outline: { backgroundColor: 'transparent', color: '#007bff', border: '1px solid #007bff' }
+      primary: { backgroundColor: '#2c3e50', color: 'white', border: '1px solid #2c3e50' },
+      success: { backgroundColor: '#34495e', color: 'white', border: '1px solid #34495e' },
+      danger: { backgroundColor: '#7f8c8d', color: 'white', border: '1px solid #7f8c8d' },
+      warning: { backgroundColor: '#95a5a6', color: '#2c3e50', border: '1px solid #95a5a6' },
+      secondary: { backgroundColor: '#95a5a6', color: 'white', border: '1px solid #95a5a6' },
+      outline: { backgroundColor: 'transparent', color: '#2c3e50', border: '1px solid #2c3e50' }
     };
 
     return { ...baseStyle, ...variants[variant] };
@@ -533,90 +533,94 @@ function StudyManagerUnified() {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+    <div style={{ backgroundColor: '#f5f7fa', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
+      {/* Header */}
       <div style={{ 
-        background: '#f8f9fa',
-        color: '#2c3e50',
-        padding: '30px',
-        borderRadius: '8px',
-        marginBottom: '30px',
-        border: '1px solid #dee2e6',
-        position: 'relative'
+        background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
+        color: 'white',
+        padding: '40px 30px',
+        marginBottom: '40px',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
       }}>
-        <h1 style={{ margin: '0 0 10px 0', fontSize: '2.2em', fontWeight: '600' }}>{t('study_manager_title')}</h1>
-        <p style={{ margin: '0', fontSize: '1.1em', color: '#6c757d' }}>
-          {t('study_manager_description')}
-        </p>
-        
-        {/* Profile and Logout Buttons */}
-        <div style={{
-          position: 'absolute',
-          top: '20px',
-          right: '20px',
-          display: 'flex',
-          gap: '10px'
-        }}>
-          <button
-            onClick={() => navigate('/admin/profile')}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              transition: 'background-color 0.2s ease'
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#545b62'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#6c757d'}
-          >
-            👤 Profil
-          </button>
-          <button
-            onClick={handleLogout}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              transition: 'background-color 0.2s ease'
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
-          >
-            🚪 Abmelden
-          </button>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', position: 'relative', padding: '0 max(12px, 3vw)' }}>
+          <h1 style={{ margin: '0 0 8px 0', fontSize: '2.4em', fontWeight: '700', letterSpacing: '-0.5px' }}>{t('study_manager_title')}</h1>
+          <p style={{ margin: '0', fontSize: '1em', color: 'rgba(255, 255, 255, 0.9)', fontWeight: '300' }}>
+            {t('study_manager_description')}
+          </p>
+          
+          {/* Profile and Logout Buttons */}
+          <div style={{
+            position: 'absolute',
+            top: '0',
+            right: '0',
+            display: 'flex',
+            gap: '12px',
+            transform: 'translate(0, -6px)'
+          }}>
+            <button
+              onClick={() => navigate('/admin/profile')}
+              style={{
+                padding: '10px 18px',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                color: 'white',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
+              onMouseOver={(e) => { e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.25)'; e.target.style.borderColor = 'rgba(255, 255, 255, 0.5)'; }}
+              onMouseOut={(e) => { e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.15)'; e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)'; }}
+            >
+              Profile
+            </button>
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '10px 18px',
+                backgroundColor: 'rgba(192, 57, 43, 0.9)',
+                color: 'white',
+                border: '1px solid rgba(192, 57, 43, 1)',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
+              onMouseOver={(e) => { e.target.style.backgroundColor = 'rgba(192, 57, 43, 1)'; e.target.style.boxShadow = '0 4px 12px rgba(192, 57, 43, 0.3)'; }}
+              onMouseOut={(e) => { e.target.style.backgroundColor = 'rgba(192, 57, 43, 0.9)'; e.target.style.boxShadow = 'none'; }}
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </div>
 
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 max(12px, 3vw) 40px' }}>
       {/* Navigation Tabs */}
       <div style={{ 
         display: 'flex', 
-        borderBottom: '1px solid #dee2e6',
+        borderBottom: '2px solid #e8ecf1',
         marginBottom: '30px',
-        backgroundColor: '#ffffff',
-        borderRadius: '8px',
-        overflow: 'hidden',
+        backgroundColor: 'white',
+        paddingLeft: 'max(12px, 3vw)',
+        paddingRight: 'max(12px, 3vw)',
+        paddingRight: '30px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+        overflow: 'x-auto',
         border: '1px solid #dee2e6'
       }}>
         {[
-          { id: 'studies', label: t('manage_studies'), icon: '📚' },
-        { id: 'published', label: t('published_studies'), icon: '🌐' },
-        { id: 'analytics', label: t('analytics_export'), icon: '📊' },
-        { id: 'users', label: t('user_management'), icon: '👥' }
+          { id: 'studies', label: t('manage_studies'), icon: '' },
+        { id: 'published', label: t('published_studies'), icon: '' },
+        { id: 'analytics', label: t('analytics_export'), icon: '' },
+        { id: 'users', label: t('user_management'), icon: '' }
         ].map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             style={{
               padding: '15px 25px',
-              backgroundColor: activeTab === tab.id ? '#007bff' : 'transparent',
+              backgroundColor: activeTab === tab.id ? '#2c3e50' : 'transparent',
               color: activeTab === tab.id ? 'white' : '#6c757d',
               border: 'none',
               cursor: 'pointer',
@@ -624,6 +628,16 @@ function StudyManagerUnified() {
               fontWeight: activeTab === tab.id ? '500' : 'normal',
               transition: 'all 0.2s ease',
               flex: 1
+            }}
+            onMouseOver={(e) => {
+              if (activeTab !== tab.id) {
+                e.target.style.backgroundColor = '#f8f9fa';
+              }
+            }}
+            onMouseOut={(e) => {
+              if (activeTab !== tab.id) {
+                e.target.style.backgroundColor = 'transparent';
+              }
             }}
           >
             {tab.label}
@@ -635,16 +649,16 @@ function StudyManagerUnified() {
       {message && (
         <div style={{
           padding: '15px',
-          backgroundColor: message.includes('Fehler') ? '#f8d7da' : '#d4edda',
-          color: message.includes('Fehler') ? '#721c24' : '#155724',
-          border: `1px solid ${message.includes('Fehler') ? '#f5c6cb' : '#c3e6cb'}`,
+          backgroundColor: message.includes('Fehler') ? '#ecf0f1' : '#ecf0f1',
+          color: message.includes('Fehler') ? '#c0392b' : '#27ae60',
+          border: `1px solid ${message.includes('Fehler') ? '#e74c3c' : '#27ae60'}`,
           borderRadius: '8px',
           marginBottom: '20px',
           display: 'flex',
           alignItems: 'center',
           gap: '10px'
         }}>
-          <span>{message.includes('Fehler') ? '❌' : '✅'}</span>
+          <span>{message.includes('Fehler') ? 'Error' : 'Success'}</span>
           {message}
           <button 
             onClick={() => setMessage('')}
@@ -664,20 +678,20 @@ function StudyManagerUnified() {
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-            <h2 style={{ margin: 0, color: '#333' }}>📝 {t('manage_studies_title')}</h2>
+            <h2 style={{ margin: 0, color: '#333' }}>{t('manage_studies_title')}</h2>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 onClick={cleanupDuplicates}
                 disabled={loading.cleanup}
                 style={getButtonStyle('warning', loading.cleanup)}
               >
-                {loading.cleanup ? `🔄 ${t('cleaning')}` : `🧹 ${t('cleanup_duplicates')}`}
+                {loading.cleanup ? `${t('cleaning')}...` : t('cleanup_duplicates')}
               </button>
               <button
                 onClick={() => setShowNewStudyForm(true)}
                 style={getButtonStyle('success')}
               >
-                ➕ {t('create_new_study')}
+                {t('create_new_study')}
               </button>
             </div>
           </div>
@@ -690,7 +704,7 @@ function StudyManagerUnified() {
               marginBottom: '30px',
               border: '1px solid #dee2e6'
             }}>
-              <h3 style={{ marginTop: 0, color: '#495057' }}>✨ {t('create_new_study')}</h3>
+              <h3 style={{ marginTop: 0, color: '#495057' }}>{t('create_new_study')}</h3>
               
               <div style={{ display: 'grid', gap: '20px', gridTemplateColumns: '1fr 200px' }}>
                 <div>
@@ -754,97 +768,153 @@ function StudyManagerUnified() {
                   disabled={loading.create || !newStudy.name.trim()}
                   style={getButtonStyle('success', loading.create || !newStudy.name.trim())}
                 >
-                  {loading.create ? `🔄 ${t('creating')}` : `✅ ${t('create_study')}`}
+                  {loading.create ? `${t('creating')}...` : t('create_study')}
                 </button>
               </div>
             </div>
           )}
 
           {/* Studien-Liste */}
-          <div style={{ display: 'grid', gap: '20px' }}>
+          <div style={{ display: 'grid', gap: '24px', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
             {studies.filter(study => study.status === 'draft').map(study => (
               <div key={study.id} style={{
-                border: '1px solid #dee2e6',
-                padding: '20px',
-                borderRadius: '8px',
-                backgroundColor: '#ffffff',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                border: 'none',
+                padding: '24px',
+                borderRadius: '12px',
+                backgroundColor: 'white',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                display: 'flex',
+                flexDirection: 'column',
+                cursor: 'pointer'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.12)'}
+              onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)'}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ margin: '0 0 10px 0', color: '#2c3e50', fontSize: '1.2em', fontWeight: '500' }}>
+                    <h3 style={{ margin: '0 0 12px 0', color: '#2c3e50', fontSize: '1.25em', fontWeight: '600' }}>
                       {study.name}
                     </h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', marginBottom: '15px' }}>
-                      <p style={{ margin: 0, color: '#6c757d', fontSize: '14px' }}>
+                    <div style={{ display: 'grid', gap: '8px' }}>
+                      <p style={{ margin: 0, color: '#6c757d', fontSize: '13px' }}>
                         <strong>{t('created')}:</strong> {new Date(study.created_at).toLocaleDateString('de-DE')}
                       </p>
-                      <p style={{ margin: 0, color: '#6c757d', fontSize: '14px' }}>
+                      <p style={{ margin: 0, color: '#6c757d', fontSize: '13px' }}>
                         <strong>{t('language')}:</strong> {availableLanguages.find(l => l.code === study.config?.language)?.name || t('unknown')}
                       </p>
-                      <p style={{ margin: 0, color: '#6c757d' }}>
+                      <p style={{ margin: 0, color: '#6c757d', fontSize: '13px' }}>
                         <strong>{t('questions')}:</strong> {study.config?.questions?.length || 0}
-                      </p>
-                      <p style={{ margin: 0, color: '#6c757d' }}>
-                        <strong>{t('status')}:</strong> <span style={{ 
-                          color: '#ffc107', 
-                          fontWeight: 'bold',
-                          backgroundColor: '#fff3cd',
-                          padding: '4px 8px',
-                          borderRadius: '12px',
-                          fontSize: '12px',
-                          border: '1px solid #ffeaa7'
-                        }}>📝 {t('draft')}</span>
                       </p>
                     </div>
                   </div>
-                  
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <button
-                      onClick={() => window.open(`/survey/${study.id}?preview=true`, '_blank')}
-                      style={{
-                        ...getButtonStyle('secondary'),
-                        backgroundColor: '#17a2b8',
-                        borderColor: '#17a2b8',
-                        color: 'white'
-                      }}
-                      title={t('preview_study') || 'Vorschau'}
-                    >
-                      👁️ {t('preview') || 'Vorschau'}
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (study.status === 'published') {
-                          alert(t('published_studies_cannot_be_edited'));
-                          return;
-                        }
-                        loadStudyForEditing(study.id);
-                      }}
-                      disabled={study.status === 'published'}
-                      style={{
-                        ...getButtonStyle('primary', study.status === 'published'),
-                        opacity: study.status === 'published' ? 0.5 : 1,
-                        cursor: study.status === 'published' ? 'not-allowed' : 'pointer'
-                      }}
-                      title={study.status === 'published' ? t('published_studies_cannot_be_edited') : t('edit_study')}
-                    >
-                      ✏️ {t('edit')}
-                    </button>
-                    <button
-                      onClick={() => publishStudy(study.id)}
-                      disabled={loading[`publish_${study.id}`]}
-                      style={getButtonStyle('success', loading[`publish_${study.id}`])}
-                    >
-                      {loading[`publish_${study.id}`] ? '🔄' : '🚀'} {t('publish')}
-                    </button>
-                    <button
-                      onClick={() => deleteStudy(study.id)}
-                      disabled={loading[`delete_${study.id}`]}
-                      style={getButtonStyle('danger', loading[`delete_${study.id}`])}
-                    >
-                      {loading[`delete_${study.id}`] ? '🔄' : '🗑️'} {t('delete')}
-                    </button>
-                  </div>
+                  <div style={{ 
+                    color: '#2c3e50', 
+                    fontWeight: '600',
+                    backgroundColor: '#ecf0f1',
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    border: '1px solid #bdc3c7',
+                    whiteSpace: 'nowrap',
+                    marginLeft: '12px'
+                  }}>Draft</div>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid #e8ecf1' }}>
+                  <button
+                    onClick={() => window.open(`/survey/${study.id}?preview=true`, '_blank')}
+                    style={{
+                      flex: 1,
+                      minWidth: '120px',
+                      padding: '10px 16px',
+                      backgroundColor: '#2c3e50',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = '#1a252f'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = '#2c3e50'}
+                    title={t('preview_study') || 'Preview'}
+                  >
+                    {t('preview') || 'Preview'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (study.status === 'published') {
+                        alert(t('published_studies_cannot_be_edited'));
+                        return;
+                      }
+                      loadStudyForEditing(study.id);
+                    }}
+                    disabled={study.status === 'published'}
+                    style={{
+                      flex: 1,
+                      minWidth: '120px',
+                      padding: '10px 16px',
+                      backgroundColor: study.status === 'published' ? '#bdc3c7' : '#2c3e50',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: study.status === 'published' ? 'not-allowed' : 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s ease',
+                      opacity: study.status === 'published' ? 0.6 : 1
+                    }}
+                    onMouseOver={(e) => !study.status === 'published' && (e.target.style.backgroundColor = '#1a252f')}
+                    onMouseOut={(e) => !study.status === 'published' && (e.target.style.backgroundColor = '#2c3e50')}
+                    title={study.status === 'published' ? t('published_studies_cannot_be_edited') : t('edit_study')}
+                  >
+                    {t('edit')}
+                  </button>
+                  <button
+                    onClick={() => publishStudy(study.id)}
+                    disabled={loading[`publish_${study.id}`]}
+                    style={{
+                      flex: 1,
+                      minWidth: '120px',
+                      padding: '10px 16px',
+                      backgroundColor: '#27ae60',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: loading[`publish_${study.id}`] ? 'not-allowed' : 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s ease',
+                      opacity: loading[`publish_${study.id}`] ? 0.6 : 1
+                    }}
+                    onMouseOver={(e) => !loading[`publish_${study.id}`] && (e.target.style.backgroundColor = '#229954')}
+                    onMouseOut={(e) => !loading[`publish_${study.id}`] && (e.target.style.backgroundColor = '#27ae60')}
+                  >
+                    {loading[`publish_${study.id}`] ? 'Publishing...' : 'Publish'}
+                  </button>
+                  <button
+                    onClick={() => deleteStudy(study.id)}
+                    disabled={loading[`delete_${study.id}`]}
+                    style={{
+                      flex: 1,
+                      minWidth: '120px',
+                      padding: '10px 16px',
+                      backgroundColor: '#c0392b',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: loading[`delete_${study.id}`] ? 'not-allowed' : 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s ease',
+                      opacity: loading[`delete_${study.id}`] ? 0.6 : 1
+                    }}
+                    onMouseOver={(e) => !loading[`delete_${study.id}`] && (e.target.style.backgroundColor = '#a93226')}
+                    onMouseOut={(e) => !loading[`delete_${study.id}`] && (e.target.style.backgroundColor = '#c0392b')}
+                  >
+                    {t('delete')}
+                  </button>
                 </div>
               </div>
             ))}
@@ -858,7 +928,7 @@ function StudyManagerUnified() {
                 borderRadius: '10px',
                 border: '2px dashed #dee2e6'
               }}>
-                <div style={{ fontSize: '3em', marginBottom: '20px' }}>📝</div>
+                <div style={{ fontSize: '3em', marginBottom: '20px' }}></div>
                 <h3>{t('no_studies_available')}</h3>
                 <p>{t('create_first_study_to_begin')}</p>
               </div>
@@ -875,136 +945,170 @@ function StudyManagerUnified() {
           borderRadius: '10px',
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
         }}>
-          <h2 style={{ marginTop: 0, color: '#333' }}>🌐 {t('published_studies')}</h2>
+          <h2 style={{ marginTop: 0, color: '#333' }}>{t('published_studies')}</h2>
           
-          <div style={{ display: 'grid', gap: '20px' }}>
+          <div style={{ display: 'grid', gap: '24px', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
             {studies.filter(study => study.status === 'published').map(study => (
               <div key={study.id} style={{
-                border: '1px solid #dee2e6',
-                padding: '25px',
-                borderRadius: '10px',
+                border: 'none',
+                padding: '24px',
+                borderRadius: '12px',
                 backgroundColor: '#ffffff',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                display: 'flex',
+                flexDirection: 'column',
+                cursor: 'pointer'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.12)'}
+              onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)'}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ margin: '0 0 15px 0', color: '#28a745', fontSize: '1.3em' }}>
-                      🌐 {study.name}
+                    <h3 style={{ margin: '0 0 12px 0', color: '#2c3e50', fontSize: '1.25em', fontWeight: '600' }}>
+                      {study.name}
                     </h3>
-                    
-                    <div style={{ marginBottom: '15px' }}>
-                      <strong>🔗 {t('public_link')}:</strong>
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '10px',
-                        marginTop: '8px',
-                        padding: '10px',
-                        backgroundColor: '#f8f9fa',
-                        borderRadius: '6px',
-                        border: '1px solid #dee2e6'
-                      }}>
-                        <input
-                          type="text"
-                          value={`${window.location.origin}/survey/${study.publicId || study.id}`}
-                          readOnly
-                          style={{
-                            flex: 1,
-                            padding: '8px',
-                            border: '1px solid #ced4da',
-                            borderRadius: '4px',
-                            backgroundColor: 'white'
-                          }}
-                        />
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(`${window.location.origin}/survey/${study.publicId || study.id}`);
-                            setMessage(t('link_copied_to_clipboard'));
-                          }}
-                          style={getButtonStyle('outline')}
-                        >
-                          📋 {t('copy')}
-                        </button>
-                        <button
-                          onClick={() => window.open(`${window.location.origin}/survey/${study.publicId || study.id}`, '_blank')}
-                          style={getButtonStyle('primary')}
-                        >
-                          🔗 {t('open')}
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
-                      <p style={{ margin: 0, color: '#6c757d' }}>
+                    <div style={{ display: 'grid', gap: '8px' }}>
+                      <p style={{ margin: 0, color: '#6c757d', fontSize: '13px' }}>
                         <strong>{t('published')}:</strong> {new Date(study.publishedAt || Date.now()).toLocaleDateString('de-DE')}
                       </p>
-                      <p style={{ margin: 0, color: '#6c757d' }}>
+                      <p style={{ margin: 0, color: '#6c757d', fontSize: '13px' }}>
                         <strong>{t('language')}:</strong> {availableLanguages.find(l => l.code === study.config?.language)?.name || t('unknown')}
                       </p>
-                      <p style={{ margin: 0, color: '#6c757d' }}>
+                      <p style={{ margin: 0, color: '#6c757d', fontSize: '13px' }}>
                         <strong>{t('questions')}:</strong> {study.config?.questions?.length || 0}
-                      </p>
-                      <p style={{ margin: 0, color: '#6c757d' }}>
-                        <strong>{t('status')}:</strong> <span style={{ 
-                          color: '#28a745', 
-                          fontWeight: 'bold',
-                          backgroundColor: '#d4edda',
-                          padding: '4px 8px',
-                          borderRadius: '12px',
-                          fontSize: '12px',
-                          border: '1px solid #c3e6cb'
-                        }}>🌐 {t('published')}</span>
                       </p>
                     </div>
                   </div>
-                  
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <button
-                      onClick={() => navigate(`/admin/analysis/${study.id}`)}
+                  <div style={{ 
+                    color: '#2c3e50', 
+                    fontWeight: '600',
+                    backgroundColor: '#ecf0f1',
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    border: '1px solid #bdc3c7',
+                    whiteSpace: 'nowrap',
+                    marginLeft: '12px'
+                  }}>{t('published')}</div>
+                </div>
+                
+                <div style={{ 
+                  marginBottom: '16px', 
+                  paddingBottom: '16px',
+                  borderBottom: '1px solid #e8ecf1'
+                }}>
+                  <p style={{ margin: '0 0 8px 0', color: '#6c757d', fontSize: '13px', fontWeight: '600' }}>{t('public_link')}:</p>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px',
+                    padding: '10px',
+                    backgroundColor: '#f8f9fa',
+                    borderRadius: '6px',
+                    border: '1px solid #dee2e6'
+                  }}>
+                    <input
+                      type="text"
+                      value={`${window.location.origin}/survey/${study.publicId || study.id}`}
+                      readOnly
                       style={{
-                        ...getButtonStyle('secondary'),
-                        backgroundColor: '#3b82f6',
-                        borderColor: '#3b82f6',
-                        color: 'white'
+                        flex: 1,
+                        padding: '6px 10px',
+                        border: '1px solid #ced4da',
+                        borderRadius: '4px',
+                        backgroundColor: 'white',
+                        fontSize: '12px',
+                        color: '#495057'
                       }}
-                      title={t('analyze_study')}
-                    >
-                      🔥 {t('analyze')}
-                    </button>
-                    <button
-                      onClick={() => window.open(`/survey/${study.id}?preview=true`, '_blank')}
-                      style={{
-                        ...getButtonStyle('secondary'),
-                        backgroundColor: '#17a2b8',
-                        borderColor: '#17a2b8',
-                        color: 'white'
-                      }}
-                      title={t('preview_study') || 'Vorschau'}
-                    >
-                      👁️ {t('preview') || 'Vorschau'}
-                    </button>
+                    />
                     <button
                       onClick={() => {
-                        alert(t('published_studies_cannot_be_edited'));
+                        navigator.clipboard.writeText(`${window.location.origin}/survey/${study.publicId || study.id}`);
+                        setMessage(t('link_copied_to_clipboard'));
                       }}
-                      disabled={true}
                       style={{
-                        ...getButtonStyle('primary', true),
-                        opacity: 0.5,
-                        cursor: 'not-allowed'
+                        padding: '6px 12px',
+                        backgroundColor: '#95a5a6',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        transition: 'all 0.2s ease',
+                        whiteSpace: 'nowrap'
                       }}
-                      title={t('published_studies_cannot_be_edited')}
+                      onMouseOver={(e) => e.target.style.backgroundColor = '#7f8c8d'}
+                      onMouseOut={(e) => e.target.style.backgroundColor = '#95a5a6'}
                     >
-                      ✏️ {t('edit')}
-                    </button>
-                    <button
-                      onClick={() => unpublishStudy(study.id)}
-                      disabled={loading[`unpublish_${study.id}`]}
-                      style={getButtonStyle('warning', loading[`unpublish_${study.id}`])}
-                    >
-                      {loading[`unpublish_${study.id}`] ? '🔄' : '📥'} {t('unpublish')}
+                      {t('copy')}
                     </button>
                   </div>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: 'auto' }}>
+                  <button
+                    onClick={() => window.open(`/survey/${study.id}?preview=true`, '_blank')}
+                    style={{
+                      flex: 1,
+                      minWidth: '120px',
+                      padding: '10px 16px',
+                      backgroundColor: '#2c3e50',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = '#1a252f'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = '#2c3e50'}
+                  >
+                    {t('preview')}
+                  </button>
+                  <button
+                    onClick={() => navigate(`/admin/analysis/${study.id}`)}
+                    style={{
+                      flex: 1,
+                      minWidth: '120px',
+                      padding: '10px 16px',
+                      backgroundColor: '#34495e',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = '#2c3e50'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = '#34495e'}
+                  >
+                    {t('analyze')}
+                  </button>
+                  <button
+                    onClick={() => unpublishStudy(study.id)}
+                    disabled={loading[`unpublish_${study.id}`]}
+                    style={{
+                      flex: 1,
+                      minWidth: '120px',
+                      padding: '10px 16px',
+                      backgroundColor: '#95a5a6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: loading[`unpublish_${study.id}`] ? 'not-allowed' : 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s ease',
+                      opacity: loading[`unpublish_${study.id}`] ? 0.6 : 1
+                    }}
+                    onMouseOver={(e) => !loading[`unpublish_${study.id}`] && (e.target.style.backgroundColor = '#7f8c8d')}
+                    onMouseOut={(e) => !loading[`unpublish_${study.id}`] && (e.target.style.backgroundColor = '#95a5a6')}
+                  >
+                    {loading[`unpublish_${study.id}`] ? t('unpublishing') : t('unpublish')}
+                  </button>
                 </div>
               </div>
             ))}
@@ -1018,7 +1122,7 @@ function StudyManagerUnified() {
                 borderRadius: '10px',
                 border: '2px dashed #dee2e6'
               }}>
-                <div style={{ fontSize: '3em', marginBottom: '20px' }}>🌐</div>
+                <div style={{ fontSize: '3em', marginBottom: '20px' }}></div>
                 <h3>{t('no_published_studies')}</h3>
                 <p>{t('publish_study_to_see_here')}</p>
               </div>
@@ -1036,7 +1140,7 @@ function StudyManagerUnified() {
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-            <h2 style={{ margin: 0, color: '#333' }}>👥 {t('user_management')}</h2>
+            <h2 style={{ margin: 0, color: '#333' }}>{t('user_management')}</h2>
             <button
               onClick={() => navigate('/admin/users')}
               style={getButtonStyle('primary')}
@@ -1053,7 +1157,7 @@ function StudyManagerUnified() {
             borderRadius: '10px',
             border: '2px dashed #dee2e6'
           }}>
-            <div style={{ fontSize: '3em', marginBottom: '20px' }}>👥</div>
+            <div style={{ fontSize: '3em', marginBottom: '20px' }}></div>
             <h3>{t('user_management_description')}</h3>
             <p>{t('manage_user_registrations_description')}</p>
             <button
@@ -1078,7 +1182,7 @@ function StudyManagerUnified() {
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-            <h2 style={{ margin: 0, color: '#333' }}>📊 {t('analytics_export')}</h2>
+            <h2 style={{ margin: 0, color: '#333' }}>{t('analytics_export')}</h2>
           </div>
           
           {showExport ? (
@@ -1102,7 +1206,7 @@ function StudyManagerUnified() {
                   borderRadius: '10px',
                   border: '2px dashed #dee2e6'
                 }}>
-                  <div style={{ fontSize: '3em', marginBottom: '20px' }}>📊</div>
+                  <div style={{ fontSize: '3em', marginBottom: '20px' }}></div>
                   <h3>{t('no_studies_available')}</h3>
                   <p>{t('create_study_first_for_analytics')}</p>
                 </div>
@@ -1114,15 +1218,15 @@ function StudyManagerUnified() {
                     
                     return (
                       <div key={study.id} style={{
-                        border: '1px solid #dee2e6',
-                        borderRadius: '8px',
-                        padding: '20px',
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '24px',
                         backgroundColor: '#ffffff',
-                        transition: 'all 0.2s ease',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
                         cursor: 'pointer'
                       }}
-                      onMouseEnter={(e) => e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'}
-                      onMouseLeave={(e) => e.target.style.boxShadow = 'none'}
+                      onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.12)'}
+                      onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)'}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
                           <div style={{ flex: 1 }}>
@@ -1130,13 +1234,18 @@ function StudyManagerUnified() {
                               {study.name}
                             </h3>
                             <div style={{ display: 'flex', gap: '15px', fontSize: '14px', color: '#6c757d', marginBottom: '10px' }}>
-                              <span>📅 {new Date(study.created_at).toLocaleDateString('de-DE')}</span>
-                              <span>❓ {config.questions.length} {t('questions')}</span>
+                              <span>{new Date(study.created_at).toLocaleDateString('de-DE')}</span>
+                              <span>{config.questions.length} {t('questions')}</span>
                               <span style={{ 
-                                color: isPublished ? '#28a745' : '#ffc107',
-                                fontWeight: '500'
+                                color: '#2c3e50',
+                                fontWeight: '600',
+                                backgroundColor: '#ecf0f1',
+                                padding: '4px 8px',
+                                borderRadius: '12px',
+                                fontSize: '12px',
+                                border: '1px solid #bdc3c7'
                               }}>
-                                {isPublished ? `🌐 ${t('published')}` : `📝 ${t('draft')}`}
+                                {isPublished ? t('published') : t('draft')}
                               </span>
                             </div>
                           </div>
@@ -1147,7 +1256,7 @@ function StudyManagerUnified() {
                             onClick={() => setShowExport({ id: study.id, name: study.name })}
                             style={getButtonStyle('primary')}
                           >
-                            📊 {t('open_analytics_export')}
+                            {t('open_analytics_export')}
                           </button>
                         </div>
                       </div>
@@ -1170,7 +1279,7 @@ function StudyManagerUnified() {
           marginTop: '30px'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-            <h2 style={{ margin: 0, color: '#333' }}>✏️ {t('edit_study')}: {editingStudy.name}</h2>
+            <h2 style={{ margin: 0, color: '#333' }}>{t('edit_study')}: {editingStudy.name}</h2>
             <button
               onClick={() => {
                 setEditingStudy(null);
@@ -1178,7 +1287,7 @@ function StudyManagerUnified() {
               }}
               style={getButtonStyle('secondary')}
             >
-              ❌ {t('close')}
+              {t('close')}
             </button>
           </div>
           
@@ -1192,23 +1301,33 @@ function StudyManagerUnified() {
             overflow: 'hidden'
           }}>
             {[
-              { id: 'general', label: `⚙️ ${t('general_settings')}` },
-              { id: 'map', label: `🗺️ ${t('map_configuration')}` },
-              { id: 'questions', label: `❓ ${t('manage_questions')}` }
+              { id: 'general', label: t('general_settings') },
+              { id: 'map', label: t('map_configuration') },
+              { id: 'questions', label: t('manage_questions') }
             ].map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(`edit_${tab.id}`)}
                 style={{
                   padding: '15px 25px',
-                  backgroundColor: activeTab === `edit_${tab.id}` ? '#007bff' : 'transparent',
+                  backgroundColor: activeTab === `edit_${tab.id}` ? '#2c3e50' : 'transparent',
                   color: activeTab === `edit_${tab.id}` ? 'white' : '#495057',
                   border: 'none',
                   cursor: 'pointer',
                   fontSize: '16px',
                   fontWeight: activeTab === `edit_${tab.id}` ? 'bold' : 'normal',
                   flex: 1,
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  if (activeTab !== `edit_${tab.id}`) {
+                    e.target.style.backgroundColor = '#e9ecef';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (activeTab !== `edit_${tab.id}`) {
+                    e.target.style.backgroundColor = 'transparent';
+                  }
                 }}
               >
                 {tab.label}
@@ -1219,7 +1338,7 @@ function StudyManagerUnified() {
           {/* Allgemeine Einstellungen */}
           {(activeTab === 'edit' || activeTab === 'edit_general') && (
             <div style={{ marginBottom: '30px' }}>
-              <h3 style={{ color: '#495057', marginBottom: '20px' }}>⚙️ {t('general_settings')}</h3>
+              <h3 style={{ color: '#495057', marginBottom: '20px' }}>{t('general_settings')}</h3>
               
               <div style={{ display: 'grid', gap: '20px', gridTemplateColumns: '1fr 200px' }}>
                 <div>
@@ -1353,7 +1472,7 @@ function StudyManagerUnified() {
           {/* Karten-Konfiguration */}
           {activeTab === 'edit_map' && (
             <div style={{ marginBottom: '30px' }}>
-              <h3 style={{ color: '#495057', marginBottom: '20px' }}>🗺️ {t('map_configuration')}</h3>
+              <h3 style={{ color: '#495057', marginBottom: '20px' }}>{t('map_configuration')}</h3>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
                 <div>
@@ -1371,9 +1490,9 @@ function StudyManagerUnified() {
                       fontSize: '16px'
                     }}
                   >
-                    <option value="openstreetmap">🗺️ {t('openstreetmap')}</option>
-                    <option value="satellite">🛰️ {t('satellite')}</option>
-                    <option value="topographic">🏔️ {t('topographic')}</option>
+                    <option value="openstreetmap">{t('openstreetmap')}</option>
+                    <option value="satellite">{t('satellite')}</option>
+                    <option value="topographic">{t('topographic')}</option>
                   </select>
                 </div>
                 
@@ -1393,7 +1512,7 @@ function StudyManagerUnified() {
                     onChange={(e) => updateMapConfig('allowZoom', e.target.checked)}
                     style={{ transform: 'scale(1.2)' }}
                   />
-                  🔍 {t('allow_zoom')}
+                  {t('allow_zoom')}
                 </label>
                 
                 <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '16px' }}>
@@ -1403,7 +1522,7 @@ function StudyManagerUnified() {
                     onChange={(e) => updateMapConfig('allowPan', e.target.checked)}
                     style={{ transform: 'scale(1.2)' }}
                   />
-                  🖱️ {t('allow_pan')}
+                  {t('allow_pan')}
                 </label>
               </div>
             </div>
@@ -1413,12 +1532,12 @@ function StudyManagerUnified() {
           {activeTab === 'edit_questions' && (
             <div style={{ marginBottom: '30px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h3 style={{ color: '#495057', margin: 0 }}>❓ {t('manage_questions')}</h3>
+                <h3 style={{ color: '#495057', margin: 0 }}>{t('manage_questions')}</h3>
                 <button
                   onClick={addQuestion}
                   style={getButtonStyle('success')}
                 >
-                  ➕ {t('add_new_question')}
+                  {t('add_new_question')}
                 </button>
               </div>
               
@@ -1431,7 +1550,7 @@ function StudyManagerUnified() {
                   borderRadius: '10px',
                   border: '2px dashed #dee2e6'
                 }}>
-                  <div style={{ fontSize: '3em', marginBottom: '20px' }}>❓</div>
+                  <div style={{ fontSize: '3em', marginBottom: '20px' }}></div>
                   <h4>{t('no_questions_available')}</h4>
                   <p>{t('add_new_question_to_begin')}</p>
                 </div>
@@ -1457,7 +1576,7 @@ function StudyManagerUnified() {
                             }}
                             title={t('move_up') || 'Nach oben'}
                           >
-                            ⬆️
+                            Move Up
                           </button>
                           <button
                             onClick={() => moveQuestionDown(index)}
@@ -1469,14 +1588,14 @@ function StudyManagerUnified() {
                             }}
                             title={t('move_down') || 'Nach unten'}
                           >
-                            ⬇️
+                            Move Down
                           </button>
                           <button
                             onClick={() => deleteQuestion(question.id)}
                             style={getButtonStyle('danger')}
                             title={t('delete')}
                           >
-                            🗑️ {t('delete')}
+                            {t('delete')}
                           </button>
                         </div>
                       </div>
@@ -1601,7 +1720,7 @@ function StudyManagerUnified() {
                                     padding: '5px 10px'
                                   }}
                                 >
-                                  🗑️
+                                  Delete
                                 </button>
                               </div>
                             ))}
@@ -1616,7 +1735,7 @@ function StudyManagerUnified() {
                                 padding: '5px 10px'
                               }}
                             >
-                              ➕ {t('add_option')}
+                              {t('add_option')}
                             </button>
                           </div>
                         )}
@@ -1676,13 +1795,23 @@ function StudyManagerUnified() {
                                     />
                                 </div>
                             </div>
+                            <div style={{ marginTop: '15px' }}>
+                              <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={question.showValue !== false}
+                                  onChange={(e) => updateQuestion(question.id, 'showValue', e.target.checked)}
+                                />
+                                {t('show_slider_value') || 'Wert des Schiebereglers anzeigen'}
+                              </label>
+                            </div>
                           </div>
                         )}
                         
                         {/* Audio-Upload für alle Fragen (optional) */}
                         <div>
                           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                            🎵 {t('audio_file_optional')}:
+                            {t('audio_file_optional')}:
                           </label>
                           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
                             <select
@@ -1728,7 +1857,7 @@ function StudyManagerUnified() {
                                 opacity: uploadingAudio ? 0.6 : 1
                               }}
                             >
-                              {uploadingAudio ? `⏳ ${t('uploading')}` : `📁 ${t('upload')}`}
+                              {uploadingAudio ? `${t('uploading')}...` : t('upload')}
                             </label>
                           </div>
                           
@@ -1741,7 +1870,7 @@ function StudyManagerUnified() {
                               border: '1px solid #ced4da'
                             }}>
                               <div style={{ marginBottom: '5px', fontSize: '14px', color: '#495057' }}>
-                                📄 {t('selected_file')}: <strong>{question.audioFile}</strong>
+                                {t('selected_file')}: <strong>{question.audioFile}</strong>
                               </div>
                               <audio 
                                 controls 
@@ -1793,7 +1922,7 @@ function StudyManagerUnified() {
                         {index > 0 && (
                           <div style={{ padding: '15px', backgroundColor: '#eef2f5', borderRadius: '5px', marginTop: '15px', border: '1px solid #dee2e6' }}>
                             <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold', color: '#495057' }}>
-                              🔀 {t('logic_filter') || 'Bedingte Anzeige (Filter)'}:
+                              {t('logic_filter') || 'Bedingte Anzeige (Filter)'}:
                             </label>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                               <div>
@@ -1871,7 +2000,7 @@ function StudyManagerUnified() {
               }}
               style={getButtonStyle('secondary')}
             >
-              ❌ {t('cancel')}
+              {t('cancel')}
             </button>
             
             <button
@@ -1879,7 +2008,7 @@ function StudyManagerUnified() {
               disabled={loading.update || !editingStudy.name.trim()}
               style={getButtonStyle('success', loading.update || !editingStudy.name.trim())}
             >
-              {loading.update ? `🔄 ${t('saving')}` : `💾 ${t('save_changes')}`}
+              {loading.update ? `${t('saving')}...` : t('save_changes')}
             </button>
           </div>
         </div>
@@ -1891,9 +2020,10 @@ function StudyManagerUnified() {
           onClick={() => window.history.back()}
           style={getButtonStyle('secondary')}
         >
-          ← {t('back_to_survey')}
+          {t('back_to_survey')}
         </button>
       </div>
+    </div>
     </div>
   );
 }

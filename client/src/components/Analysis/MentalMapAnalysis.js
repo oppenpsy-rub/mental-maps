@@ -42,68 +42,42 @@ const MentalMapAnalysis = () => {
     }
   }, [studyId]);
 
-  if (loading) return <div style={{padding: '40px', textAlign: 'center'}}>Loading analysis data...</div>;
-  if (!data || !data.features) return <div style={{padding: '40px', textAlign: 'center'}}>No data found or error loading data.</div>;
+  if (loading) return <div className="analysis-loading">Loading analysis data...</div>;
+  if (!data || !data.features) return <div className="analysis-error">No data found or error loading data.</div>;
 
   const featureCount = data.features.length;
 
   return (
-    <div className="analysis-container" style={{padding: '20px', maxWidth: '1400px', margin: '0 auto'}}>
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+    <div className="analysis-container">
+      <div className="analysis-header">
         <div>
-            <h2 style={{fontSize: '24px', fontWeight: 'bold', color: '#1f2937', marginBottom: '4px'}}>Mental Map Analysis</h2>
-            <p style={{color: '#6b7280', fontSize: '14px'}}>Study ID: {studyId} • {featureCount} Mental Maps loaded</p>
+            <h2 className="analysis-title">VOICE Mental Maps Analysis</h2>
+            <p className="analysis-meta">Study ID: {studyId} • {featureCount} VOICE Mental Maps loaded</p>
         </div>
         <button 
           onClick={() => navigate('/admin')}
-          style={{
-            padding: '8px 16px', 
-            backgroundColor: '#4b5563', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '6px', 
-            cursor: 'pointer',
-            fontWeight: 500
-          }}
+          className="analysis-btn-back"
         >
           Back to Dashboard
         </button>
       </div>
 
-      <div className="tabs" style={{display: 'flex', gap: '20px', marginBottom: '20px', borderBottom: '1px solid #e5e7eb'}}>
+      <div className="analysis-tabs">
         <button 
           onClick={() => setActiveTab('viewer')}
-          style={{
-            padding: '12px 4px', 
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'viewer' ? '2px solid #2563eb' : '2px solid transparent',
-            color: activeTab === 'viewer' ? '#2563eb' : '#6b7280',
-            cursor: 'pointer',
-            fontWeight: activeTab === 'viewer' ? 600 : 500,
-            fontSize: '16px'
-          }}
+          className={`analysis-tab-btn ${activeTab === 'viewer' ? 'active' : ''}`}
         >
           Map Viewer
         </button>
         <button 
           onClick={() => setActiveTab('heatmap')}
-          style={{
-            padding: '12px 4px', 
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'heatmap' ? '2px solid #2563eb' : '2px solid transparent',
-            color: activeTab === 'heatmap' ? '#2563eb' : '#6b7280',
-            cursor: 'pointer',
-            fontWeight: activeTab === 'heatmap' ? 600 : 500,
-            fontSize: '16px'
-          }}
+          className={`analysis-tab-btn ${activeTab === 'heatmap' ? 'active' : ''}`}
         >
           Heatmap Analysis
         </button>
       </div>
 
-      <div style={{minHeight: '600px'}}>
+      <div className="analysis-content">
         {activeTab === 'viewer' && (
           <MentalMapViewer mentalMaps={data.features} questionLabels={questionLabels} />
         )}

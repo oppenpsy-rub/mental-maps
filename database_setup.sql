@@ -1,6 +1,6 @@
--- Mental Map Tool - Database Setup Script
+-- VOICE Mental Maps - Database Setup Script
 -- Für RUB Datenbankserver
--- Erstellt alle notwendigen Tabellen für das Mental Map Tool
+-- Erstellt alle notwendigen Tabellen für VOICE Mental Maps
 
 -- Datenbank erstellen (falls noch nicht vorhanden)
 -- CREATE DATABASE IF NOT EXISTS mentalmaps CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

@@ -1,4 +1,5 @@
-# 🗺️ MentalMap-Tool
+# 🗺️ VOICE Mental Maps
+> **Variation Observed In Community Evaluations**
 
 [![License: Custom](https://img.shields.io/badge/License-Custom-red.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
@@ -17,7 +18,7 @@ Ein professionelles, webbasiertes Tool für linguistische Perzeptionsstudien mit
 
 ## 🎓 Entwickelt an der Ruhr-Universität Bochum
 
-Dieses Tool wurde für die Forschung in der Linguistik entwickelt und ermöglicht es Forschern, Mental Maps systematisch zu erfassen und zu analysieren.
+Dieses Tool wurde für die Forschung in der Linguistik entwickelt und ermöglicht es Forschern, VOICE Mental Maps systematisch zu erfassen und zu analysieren.
 
 ## ✨ Features
 

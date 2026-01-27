@@ -12,6 +12,9 @@ import { AuthProvider, useAuth } from './Auth';
 import Login from './Login';
 import Profile from './Profile';
 import MentalMapAnalysis from './components/Analysis/MentalMapAnalysis';
+import { Lightbulb, Music, X, MapPin, CheckCircle2, BarChart3, Globe, Lock, Smartphone } from 'lucide-react';
+import './landing.css';
+import './responsive-utilities.css';
 
 // Leaflet Icons für React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -106,8 +109,8 @@ function SurveyRoute() {
 // Demo study data for homepage preview
 const DEMO_STUDY = {
   id: "demo-study",
-  name: "Demo: Mental Map Tool - English Language Perception Study",
-  description: "This is a demonstration of the Mental Map Tool with sample questions about English language perceptions. Your responses will not be saved.",
+  name: "Demo: VOICE Mental Maps - English Language Perception Study",
+  description: "This is a demonstration of VOICE Mental Maps with sample questions about English language perceptions. Your responses will not be saved.",
   config: {
     questions: [
       {
@@ -137,6 +140,7 @@ function HomeRoute() {
   const { currentUser, logout } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [showDemo, setShowDemo] = useState(false);
   const [participantCode, setParticipantCode] = useState(null);
   const [currentStudy, setCurrentStudy] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -159,6 +163,7 @@ function HomeRoute() {
       // Set a demo participant code
       const demoCode = 'DEMO-' + Math.random().toString(36).substr(2, 6).toUpperCase();
       setParticipantCode(demoCode);
+      setShowDemo(true);
       
     } catch (error) {
       console.error('Error loading demo study:', error);
@@ -167,8 +172,10 @@ function HomeRoute() {
 
   // Load demo study on component mount
   useEffect(() => {
-    loadDemoStudy();
-  }, [loadDemoStudy]);
+    if (showDemo) {
+      loadDemoStudy();
+    }
+  }, [showDemo, loadDemoStudy]);
 
   // Remove the old loadStudy call - we only want demo study on homepage
   // const loadStudy = useCallback(async () => {
@@ -234,45 +241,18 @@ function HomeRoute() {
     } else {
       // VORSCHAU-MODUS: Zeige Hinweis statt echten Abschluss
       const modal = document.createElement('div');
-      modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-      `;
+      modal.className = 'preview-modal';
       
       const content = document.createElement('div');
-      content.style.cssText = `
-        background: white;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        text-align: center;
-        max-width: 500px;
-        width: 90%;
-      `;
+      content.className = 'preview-content';
       
       content.innerHTML = `
-        <h2 style="color: #007bff; margin-bottom: 20px;">👁️ Preview completed</h2>
-        <p style="margin-bottom: 20px; font-size: 16px;">
+        <h2 class="preview-title">Preview completed</h2>
+        <p class="preview-text">
           You have completed the preview version.<br>
           <strong>No data was saved.</strong>
         </p>
-        <button id="closeModal" style="
-          background: #007bff;
-          color: white;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 5px;
-          cursor: pointer;
-          font-size: 16px;
-        ">Got it</button>
+        <button id="closeModal" class="btn-close-modal">Got it</button>
       `;
       
       modal.appendChild(content);
@@ -314,6 +294,138 @@ function HomeRoute() {
   };
 
   // Zeige Loading-Zustand wenn noch keine Studie geladen ist
+  // Show Landing Page if not in demo mode
+  if (!showDemo) {
+    return (
+      <div className="App landing-page">
+        {/* Header */}
+        <header className="landing-header">
+          <div className="landing-header-content">
+            <div className="landing-logo">
+              <h1>VOICE Mental Maps</h1>
+            </div>
+            <nav className="landing-nav">
+              {currentUser ? (
+                <>
+                  <button 
+                    className="landing-nav-btn"
+                    onClick={() => navigate('/admin')}
+                  >
+                    {t('study_management')}
+                  </button>
+                  <button 
+                    className="landing-nav-btn primary"
+                    onClick={() => logout()}
+                  >
+                    {t('logout')}
+                  </button>
+                </>
+              ) : (
+                <button 
+                  className="landing-nav-btn primary"
+                  onClick={() => navigate('/admin/login')}
+                >
+                  {t('login')}
+                </button>
+              )}
+            </nav>
+          </div>
+        </header>
+
+        {/* Hero Section */}
+        <section className="landing-hero">
+          <div className="landing-hero-content">
+            <h2 className="landing-hero-title">Kartographie von Wahrnehmungen</h2>
+            <p className="landing-hero-subtitle">Erfassen Sie räumliche Perzeptionen und mentale Karten durch interaktive, kartenbasierte Umfragen</p>
+            <button 
+              className="landing-cta-button"
+              onClick={() => setShowDemo(true)}
+            >
+              Demo anschauen
+            </button>
+          </div>
+          <div className="landing-hero-background"></div>
+        </section>
+
+        {/* Features Section */}
+        <section className="landing-features">
+          <div className="landing-features-container">
+            <div className="landing-feature">
+              <div className="landing-feature-icon">
+                <MapPin size={32} />
+              </div>
+              <h3>Interaktive Kartierung</h3>
+              <p>Teilnehmer können direkt auf einer Karte Polygone zeichnen, um ihre räumlichen Wahrnehmungen auszudrücken</p>
+            </div>
+            <div className="landing-feature">
+              <div className="landing-feature-icon">
+                <CheckCircle2 size={32} />
+              </div>
+              <h3>Flexible Fragen</h3>
+              <p>Unterstützt verschiedene Fragetypen: Polygone, Punkte, Mehrfachauswahl, Text und Audio-Wahrnehmung</p>
+            </div>
+            <div className="landing-feature">
+              <div className="landing-feature-icon">
+                <BarChart3 size={32} />
+              </div>
+              <h3>Datenexport</h3>
+              <p>Exportieren Sie Ihre Ergebnisse als GeoJSON oder CSV für die Analyse in QGIS oder anderen Tools</p>
+            </div>
+            <div className="landing-feature">
+              <div className="landing-feature-icon">
+                <Globe size={32} />
+              </div>
+              <h3>Mehrsprachig</h3>
+              <p>Unterstützt Deutsch, Englisch, Französisch, Italienisch, Spanisch, Portugiesisch, Rumänisch und mehr</p>
+            </div>
+            <div className="landing-feature">
+              <div className="landing-feature-icon">
+                <Lock size={32} />
+              </div>
+              <h3>Sicher & Privat</h3>
+              <p>Anonyme Teilnehmerverwaltung mit Zugriffscodes und sicherer Datenspeicherung</p>
+            </div>
+            <div className="landing-feature">
+              <div className="landing-feature-icon">
+                <Smartphone size={32} />
+              </div>
+              <h3>Responsive Design</h3>
+              <p>Funktioniert nahtlos auf Desktop, Tablet und Mobilgeräten</p>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="landing-cta-section">
+          <div className="landing-cta-content">
+            <h2>Bereit zum Starten?</h2>
+            <p>Erstellen Sie Ihre erste Studie und beginnen Sie mit der Erfassung räumlicher Daten</p>
+            <div className="landing-cta-buttons">
+              <button 
+                className="landing-button primary"
+                onClick={() => navigate('/admin/login')}
+              >
+                {t('login')}
+              </button>
+              <button 
+                className="landing-button secondary"
+                onClick={() => setShowDemo(true)}
+              >
+                Demo anschauen
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="landing-footer">
+          <p>&copy; 2025 VOICE Mental Maps. Alle Rechte vorbehalten.</p>
+        </footer>
+      </div>
+    );
+  }
+
+  // Demo View
   if (!currentStudy || !currentQuestion) {
     return (
       <div className="App">
@@ -325,7 +437,7 @@ function HomeRoute() {
             </div>
           </div>
         </div>
-        <div className="map-container" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ecf0f1'}}>
+        <div className="map-container loading-container">
           <p>{t('study_loading')}</p>
         </div>
       </div>
@@ -333,9 +445,24 @@ function HomeRoute() {
   }
 
   return (
-    <div className="App">
+    <div className="App public-survey">
+      {/* Demo Banner */}
+      <div className="demo-banner">
+        <span>Demo Modus - Daten werden nicht gespeichert</span>
+        <button 
+          className="demo-banner-close"
+          onClick={() => {
+            setShowDemo(false);
+            setCurrentQuestion(null);
+            setCurrentStudy(null);
+          }}
+        >
+          Zurück zur Startseite
+        </button>
+      </div>
+
       {/* Professioneller Header über der Karte */}
-      <div className="app-header">
+      <div className="survey-header">
         <div className="header-left">
           {currentQuestion && (
             <div className="question-info">
@@ -411,7 +538,7 @@ function HomeRoute() {
                 className="close-instructions"
                 onClick={() => setShowInstructions(false)}
               >
-                ×
+                <X size={24} />
               </button>
             </div>
             <ol>
@@ -422,7 +549,7 @@ function HomeRoute() {
               <li><strong>{t('instruction_5')}</strong></li>
               <li>{t('instruction_6')}</li>
             </ol>
-            <p className="tip">💡 {t('drawing_tip')}</p>
+            <p className="tip"><Lightbulb size={16} className="me-2" /> {t('drawing_tip')}</p>
           </div>
         </div>
       )}
@@ -431,7 +558,7 @@ function HomeRoute() {
       {currentQuestion && currentQuestion.type === 'audio_perception' && currentQuestion.audioFile && (
         <div className="audio-panel">
           <div className="audio-content">
-            <span className="audio-label">🎵 {t('audio_perception')}:</span>
+            <span className="audio-label"><Music size={20} className="me-2" /> {t('audio_perception')}:</span>
             <audio controls className="audio-player">
               <source src={`/uploads/audio/${currentQuestion.audioFile}`} type="audio/mpeg" />
               <source src={`/uploads/audio/${currentQuestion.audioFile}`} type="audio/wav" />
@@ -443,22 +570,27 @@ function HomeRoute() {
         </div>
       )}
 
-      {/* Main Map */}
-      <div className="map-container">
-        <MapContainer
-          center={[46.5, 2.5]}
-          zoom={6}
-          style={{ height: '100%', width: '100%' }}
-          zoomControl={!isDrawing}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <MapDrawingLayer
-            onPolygonsChange={setPolygons}
-            onDrawingChange={setIsDrawing}
-            currentQuestion={currentQuestion} />
-        </MapContainer>
+      {/* Content Shell */}
+      <div className="content-shell">
+        {/* Main Map */}
+        <div className="map-container" style={{ display: 'flex', flexDirection: 'column', flex: '1 1 0', minHeight: '400px', position: 'relative' }}>
+          <div style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0 }}>
+            <MapContainer
+              center={[37.0902, -95.7129]}
+              zoom={4}
+              className="map-full"
+              zoomControl={!isDrawing}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <MapDrawingLayer
+                onPolygonsChange={setPolygons}
+                onDrawingChange={setIsDrawing}
+                currentQuestion={currentQuestion} />
+            </MapContainer>
+          </div>
+        </div>
       </div>
 
       {/* Action Panel at bottom */}

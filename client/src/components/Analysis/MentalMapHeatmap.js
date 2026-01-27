@@ -193,27 +193,14 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
             // Add Legend
             const legend = L.control({ position: 'bottomright' });
             legend.onAdd = function () {
-                const div = L.DomUtil.create('div', 'info legend');
-                div.style.backgroundColor = 'white';
-                div.style.padding = '8px';
-                div.style.border = '1px solid #ccc';
-                div.style.borderRadius = '4px';
-                div.style.boxShadow = '0 1px 5px rgba(0,0,0,0.4)';
-                div.style.fontSize = '12px';
-                div.style.lineHeight = '1.4';
+                const div = L.DomUtil.create('div', 'info legend heatmap-legend');
                 
                 div.innerHTML = `
-                    <div style="font-weight: bold; margin-bottom: 5px; color: #333;">Überlappung</div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="color: #666;">Wenig</span>
-                        <div style="
-                            width: 100px; 
-                            height: 12px; 
-                            background: linear-gradient(to right, rgb(0,0,255), rgb(0,255,255), rgb(0,255,0), rgb(255,255,0), rgb(255,0,0));
-                            border: 1px solid #ccc;
-                            border-radius: 2px;
-                        "></div>
-                        <span style="color: #666;">Viel</span>
+                    <div class="legend-title">Überlappung</div>
+                    <div class="legend-scale">
+                        <span class="legend-label">Wenig</span>
+                        <div class="legend-gradient-bar"></div>
+                        <span class="legend-label">Viel</span>
                     </div>
                 `;
                 return div;
@@ -539,17 +526,17 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
                                                     feature.properties.participant_id || 
                                                     'Unbekannt';
                                         
-                                        participantInfo = `<div style="font-size: 13px; color: #2563eb; margin-top: 4px; font-weight: 500;">Proband: ${pCode}</div>`;
+                                        participantInfo = `<div class="popup-participant">Proband: ${pCode}</div>`;
                                     }
                                 }
 
                                 const content = `
-                                    <div style="font-family: system-ui, sans-serif; padding: 6px; min-width: 180px;">
-                                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 6px; color: #111;">Überlappungen: ${smoothing ? val.toFixed(2) : Math.round(val)}</div>
+                                    <div class="popup-container">
+                                        <div class="popup-title">Überlappungen: ${smoothing ? val.toFixed(2) : Math.round(val)}</div>
                                         ${participantInfo}
-                                        <div style="font-size: 13px; color: #555; line-height: 1.5;">
-                                            <div style="margin-bottom: 4px;">Lat: ${lat.toFixed(5)} · Lng: ${lng.toFixed(5)}</div>
-                                            <div style="font-style: italic; color: #888; border-top: 1px solid #eee; padding-top: 6px; margin-top: 4px;">
+                                        <div class="popup-content">
+                                            <div class="popup-row">Lat: ${lat.toFixed(5)} · Lng: ${lng.toFixed(5)}</div>
+                                            <div class="popup-footer-italic">
                                                 Lade Ort...
                                             </div>
                                         </div>
@@ -741,12 +728,12 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
                                         if (!addressString) addressString = "Adresse nicht gefunden";
 
                                         const newContent = `
-                                            <div style="font-family: system-ui, sans-serif; padding: 6px; min-width: 180px;">
-                                                <div style="font-size: 16px; font-weight: 600; margin-bottom: 6px; color: #111;">Überlappungen: ${smoothing ? val.toFixed(2) : Math.round(val)}</div>
+                                            <div class="popup-container">
+                                                <div class="popup-title">Überlappungen: ${smoothing ? val.toFixed(2) : Math.round(val)}</div>
                                                 ${participantInfo}
-                                                <div style="font-size: 13px; color: #555; line-height: 1.5;">
-                                                    <div style="margin-bottom: 4px;">Lat: ${lat.toFixed(5)} · Lng: ${lng.toFixed(5)}</div>
-                                                    <div style="border-top: 1px solid #eee; padding-top: 6px; margin-top: 4px;">
+                                                <div class="popup-content">
+                                                    <div class="popup-row">Lat: ${lat.toFixed(5)} · Lng: ${lng.toFixed(5)}</div>
+                                                    <div class="popup-footer-highlight">
                                                         ${addressString}
                                                     </div>
                                                 </div>
@@ -796,12 +783,8 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
                     // Canvas Rendering
                     const canvas = document.createElement('canvas');
                     canvas.className = 'heatmap-canvas'; // Mark for cleanup
-                    canvas.style.position = 'absolute';
-                    canvas.style.top = '0';
-                    canvas.style.left = '0';
-                    canvas.style.pointerEvents = 'none';
                     if (visualBlur) {
-                        canvas.style.filter = 'blur(4px)';
+                        canvas.classList.add('heatmap-canvas-blur');
                     }
                     heatCanvasRef.current = canvas;
                     overlayPane.appendChild(canvas);
@@ -932,17 +915,17 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
                                                       feature.properties.participant_id || 
                                                       'Unbekannt';
                                         
-                                        participantInfo = `<div style="font-size: 13px; color: #2563eb; margin-top: 4px; font-weight: 500;">Proband: ${pCode}</div>`;
+                                        participantInfo = `<div class="popup-participant">Proband: ${pCode}</div>`;
                                     }
                                 }
 
                                 const content = `
-                                    <div style="font-family: system-ui, sans-serif; padding: 6px; min-width: 180px;">
-                                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 6px; color: #111;">Überlappungen: ${smoothing ? val.toFixed(2) : Math.round(val)}</div>
+                                    <div class="popup-container">
+                                        <div class="popup-title">Überlappungen: ${smoothing ? val.toFixed(2) : Math.round(val)}</div>
                                         ${participantInfo}
-                                        <div style="font-size: 13px; color: #555; line-height: 1.5;">
-                                            <div style="margin-bottom: 4px;">Lat: ${lat.toFixed(5)} · Lng: ${lng.toFixed(5)}</div>
-                                            <div style="font-style: italic; color: #888; border-top: 1px solid #eee; padding-top: 6px; margin-top: 4px;">
+                                        <div class="popup-content">
+                                            <div class="popup-row">Lat: ${lat.toFixed(5)} · Lng: ${lng.toFixed(5)}</div>
+                                            <div class="popup-footer-italic">
                                                 Lade Ort...
                                             </div>
                                         </div>
@@ -1162,12 +1145,12 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
                                            const adminLine = parts.length > 0 ? parts.join(' · ') : 'Ort wird geladen...';
                                            
                                            const newContent = `
-                                              <div style="font-family: system-ui, sans-serif; padding: 6px; min-width: 180px;">
-                                                  <div style="font-size: 16px; font-weight: 600; margin-bottom: 6px; color: #111;">Überlappungen: ${smoothing ? val.toFixed(2) : Math.round(val)}</div>
+                                              <div class="popup-container">
+                                                  <div class="popup-title">Überlappungen: ${smoothing ? val.toFixed(2) : Math.round(val)}</div>
                                                   ${participantInfo}
-                                                  <div style="font-size: 13px; color: #555; line-height: 1.5;">
-                                                      <div style="margin-bottom: 4px;">Lat: ${lat.toFixed(5)} · Lng: ${lng.toFixed(5)}</div>
-                                                      <div style="font-size: 15px; font-weight: 600; color: #2563eb; border-top: 1px solid #eee; padding-top: 6px; margin-top: 4px;">
+                                                  <div class="popup-content">
+                                                      <div class="popup-row">Lat: ${lat.toFixed(5)} · Lng: ${lng.toFixed(5)}</div>
+                                                      <div class="popup-footer-highlight">
                                                           ${adminLine}
                                                       </div>
                                                   </div>
@@ -1249,7 +1232,7 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
                                 weight: 0,
                                 interactive: true
                             }).addTo(batchGroup)
-                              .bindPopup(`Wert: ${val.toFixed(2)}<br/>Intensität: ${(intensity*100).toFixed(0)}%`);
+                              .bindPopup(`<div class="popup-container"><div class="popup-row">Wert: ${val.toFixed(2)}</div><div class="popup-row">Intensität: ${(intensity*100).toFixed(0)}%</div></div>`);
                         }
                     }
                     // Register cleanup for layer group
@@ -1294,172 +1277,51 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
 
 
     return (
-      <div style={isFullscreen ? {
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          zIndex: 50,
-          backgroundColor: '#fff',
-          padding: '16px',
-          fontFamily: 'system-ui, -apple-system, sans-serif'
-      } : {
-          padding: '24px',
-          border: '1px solid #e5e7eb',
-          borderRadius: '8px',
-          backgroundColor: '#fff',
-          boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-          position: 'relative',
-          fontFamily: 'system-ui, -apple-system, sans-serif'
-      }}>
+      <div className={isFullscreen ? "viewer-fullscreen" : "viewer-card"}>
         {isConfiguring && (
-            <div style={{
-                position: 'absolute',
-                top: 0, left: 0, right: 0, bottom: 0,
-                zIndex: 1000,
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(4px)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '32px',
-                borderRadius: '8px'
-            }}>
-                <div style={{
-                    backgroundColor: '#fff',
-                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                    borderRadius: '16px',
-                    border: '1px solid #e5e7eb',
-                    padding: '24px',
-                    width: '100%',
-                    maxWidth: '512px',
-                    maxHeight: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    fontFamily: 'system-ui, -apple-system, sans-serif'
-                }}>
-                    <h3 style={{
-                        fontSize: '20px',
-                        fontWeight: '700',
-                        marginBottom: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        color: '#1f2937'
-                    }}>
+            <div className="config-overlay">
+                <div className="config-card">
+                    <h3 className="config-header">
                         <Layers size={24} color="#3b82f6" />
                         Fragen auswählen
                     </h3>
-                    <p style={{
-                        color: '#6b7280',
-                        fontSize: '14px',
-                        marginBottom: '16px',
-                        lineHeight: '1.5'
-                    }}>
+                    <p className="config-description">
                         Wählen Sie die Fragen aus, die in die Heatmap einfließen sollen.
                     </p>
                     
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '8px'
-                    }}>
-                        <span style={{
-                            fontSize: '12px',
-                            fontWeight: '600',
-                            color: '#6b7280',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em'
-                        }}>
+                    <div className="config-actions">
+                        <span className="selection-count">
                             {tempSelectedQuestions.length} ausgewählt
                         </span>
                         <button 
                             onClick={handleSelectAll}
-                            style={{
-                                fontSize: '12px',
-                                color: '#2563eb',
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                                fontWeight: '500'
-                            }}
-                            onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-                            onMouseOut={(e) => e.target.style.textDecoration = 'none'}
+                            className="btn-link"
                         >
                             {tempSelectedQuestions.length === uniqueQuestions.length ? 'Keine' : 'Alle'} auswählen
                         </button>
                     </div>
 
-                    <div style={{
-                        flex: '1',
-                        overflowY: 'auto',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        padding: '8px',
-                        marginBottom: '24px',
-                        backgroundColor: '#f9fafb',
-                        maxHeight: '300px'
-                    }}>
+                    <div className="question-list-container">
                         {uniqueQuestions.map(qId => (
-                            <label key={qId} style={{
-                                display: 'flex',
-                                alignItems: 'flex-start',
-                                gap: '12px',
-                                padding: '8px',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                transition: 'background-color 0.15s',
-                                border: '1px solid transparent'
-                            }}
-                            onMouseOver={(e) => {
-                                e.currentTarget.style.backgroundColor = '#fff';
-                                e.currentTarget.style.borderColor = '#e5e7eb';
-                            }}
-                            onMouseOut={(e) => {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                                e.currentTarget.style.borderColor = 'transparent';
-                            }}
-                            >
+                            <label key={qId} className="question-item">
                                 <input 
                                     type="checkbox" 
                                     checked={tempSelectedQuestions.includes(qId)}
                                     onChange={() => toggleQuestion(qId)}
-                                    style={{ marginTop: '4px', cursor: 'pointer' }}
+                                    className="mt-1 cursor-pointer"
                                 />
-                                <span style={{
-                                    fontSize: '14px',
-                                    color: '#374151',
-                                    lineHeight: '1.4'
-                                }}>
+                                <span className="question-text">
                                     {LABELS[qId] || qId}
                                 </span>
                             </label>
                         ))}
                     </div>
 
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'flex-end',
-                        gap: '12px',
-                        paddingTop: '16px',
-                        borderTop: '1px solid #e5e7eb'
-                    }}>
+                    <div className="modal-footer">
                         {hasGenerated && (
                             <button 
                                 onClick={() => setIsConfiguring(false)}
-                                style={{
-                                    padding: '8px 16px',
-                                    color: '#4b5563',
-                                    backgroundColor: '#fff',
-                                    border: '1px solid #d1d5db',
-                                    borderRadius: '6px',
-                                    fontSize: '14px',
-                                    fontWeight: '500',
-                                    cursor: 'pointer',
-                                    transition: 'background-color 0.2s'
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fff'}
+                                className="btn-cancel"
                             >
                                 Abbrechen
                             </button>
@@ -1467,24 +1329,7 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
                         <button 
                             onClick={handleGenerate}
                             disabled={tempSelectedQuestions.length === 0}
-                            style={{
-                                padding: '8px 24px',
-                                backgroundColor: tempSelectedQuestions.length === 0 ? '#93c5fd' : '#2563eb',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '6px',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                cursor: tempSelectedQuestions.length === 0 ? 'not-allowed' : 'pointer',
-                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                                transition: 'background-color 0.2s'
-                            }}
-                            onMouseOver={(e) => {
-                                if (tempSelectedQuestions.length > 0) e.currentTarget.style.backgroundColor = '#1d4ed8';
-                            }}
-                            onMouseOut={(e) => {
-                                if (tempSelectedQuestions.length > 0) e.currentTarget.style.backgroundColor = '#2563eb';
-                            }}
+                            className="btn-primary"
                         >
                             Heatmap Generieren
                         </button>
@@ -1493,35 +1338,21 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
             </div>
         )}
 
-        <div style={{
-            backgroundColor: '#fff',
-            borderRadius: '12px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            border: '1px solid #e5e7eb',
-            padding: '16px',
-            marginBottom: '16px',
-            fontFamily: 'system-ui, -apple-system, sans-serif'
-        }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+        <div className="analysis-card">
+            <div className="d-flex flex-wrap align-center justify-between gap-3">
                 
                 {/* Header Section */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{
-                        padding: '10px',
-                        background: 'linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%)',
-                        borderRadius: '12px',
-                        border: '1px solid #dbeafe',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}>
+                <div className="analysis-header">
+                    <div className="analysis-icon-box">
                         <Flame size={24} color="#2563eb" />
                     </div>
                     <div>
-                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#1f2937' }}>Heatmap Analyse</h3>
-                        <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ backgroundColor: '#f3f4f6', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '500', color: '#4b5563' }}>
+                        <h3 className="analysis-title">Heatmap Analyse</h3>
+                        <p className="analysis-meta">
+                            <span className="meta-badge">
                                 {filteredFeatures.length} Maps
                             </span>
-                            <span style={{ color: '#d1d5db' }}>•</span>
+                            <span className="separator-dot">•</span>
                             <span>
                                 {selectedQuestions.length} {selectedQuestions.length === 1 ? 'Frage' : 'Fragen'} aktiv
                             </span>
@@ -1530,29 +1361,17 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
                 </div>
 
                 {/* Controls Section */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
+                <div className="controls-container">
                     
                     {/* Settings Group */}
-                    <div style={{
-                        display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '16px',
-                        backgroundColor: '#f9fafb', padding: '10px 16px', borderRadius: '8px',
-                        border: '1px solid #e5e7eb'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div className="settings-group">
+                        <div className="control-item">
                             <Settings size={16} color="#9ca3af" />
-                            <span style={{ fontSize: '14px', fontWeight: '500', color: '#4b5563' }}>Raster:</span>
+                            <span className="control-label">Raster:</span>
                             <select 
                                 value={gridSize} 
                                 onChange={(e) => setGridSize(parseFloat(e.target.value))}
-                                style={{
-                                    fontSize: '14px',
-                                    border: '1px solid #d1d5db',
-                                    borderRadius: '6px',
-                                    padding: '4px 24px 4px 8px',
-                                    backgroundColor: '#fff',
-                                    cursor: 'pointer',
-                                    outline: 'none'
-                                }}
+                                className="control-select"
                                 disabled={isComputing}
                             >
                                 <option value={0.05}>Fein (0.05°)</option>
@@ -1562,51 +1381,44 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
                             </select>
                         </div>
                         
-                        <div style={{ width: '1px', height: '20px', backgroundColor: '#d1d5db' }}></div>
+                        <div className="divider-vertical"></div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '14px', fontWeight: '500', color: '#4b5563' }}>Filter:</span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="control-item">
+                            <span className="control-label">Filter:</span>
+                            <div className="control-item">
                                 <input 
                                     type="number" 
                                     min="0"
                                     max="50"
                                     value={minOverlap}
                                     onChange={(e) => setMinOverlap(Math.max(0, parseInt(e.target.value) || 0))}
-                                    style={{
-                                        width: '50px',
-                                        fontSize: '14px',
-                                        padding: '4px 8px',
-                                        borderRadius: '6px',
-                                        border: '1px solid #d1d5db',
-                                        outline: 'none'
-                                    }}
+                                    className="control-input-sm"
                                 />
-                                <span style={{ fontSize: '13px', color: '#6b7280' }}>Min. Überlappung</span>
+                                <span className="text-sm text-gray-500">Min. Überlappung</span>
                             </div>
                         </div>
 
-                        <div style={{ width: '1px', height: '20px', backgroundColor: '#d1d5db' }}></div>
+                        <div className="divider-vertical"></div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#374151', cursor: 'pointer' }}>
+                        <div className="control-item gap-3">
+                            <label className="control-checkbox-label">
                                 <input 
                                     type="checkbox" 
                                     checked={smoothing} 
                                     onChange={(e) => setSmoothing(e.target.checked)}
                                     disabled={isComputing}
-                                    style={{ cursor: 'pointer' }}
+                                    className="cursor-pointer"
                                 />
                                 <span>Daten glätten</span>
                             </label>
 
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#374151', cursor: 'pointer' }} title="Visueller Weichzeichner">
+                            <label className="control-checkbox-label" title="Visueller Weichzeichner">
                                 <input 
                                     type="checkbox" 
                                     checked={visualBlur} 
                                     onChange={(e) => setVisualBlur(e.target.checked)}
                                     disabled={isComputing}
-                                    style={{ cursor: 'pointer' }}
+                                    className="cursor-pointer"
                                 />
                                 <span>Weichzeichnen</span>
                             </label>
@@ -1614,80 +1426,35 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
                     </div>
 
                     {/* Action Buttons Group */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: '4px' }}>
+                    <div className="d-flex align-center gap-2 pl-1">
                         <button
                             onClick={() => {
                                 setTempSelectedQuestions(selectedQuestions);
                                 setIsConfiguring(true);
                             }}
                             disabled={isComputing}
-                            style={{
-                                display: 'flex', alignItems: 'center', gap: '8px',
-                                padding: '10px 16px',
-                                backgroundColor: '#fff',
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '8px',
-                                fontSize: '14px', fontWeight: '500', color: '#374151',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fff'}
+                            className="btn-action"
                             title="Fragen auswählen"
                         >
                             <Layers size={18} color="#6b7280" />
                             <span>Fragen</span>
                         </button>
 
-                        <div style={{ width: '1px', height: '24px', backgroundColor: '#e5e7eb', margin: '0 4px' }}></div>
+                        <div className="divider-vertical h-6 mx-1"></div>
 
                         <button
                             onClick={() => setIsFullscreen(!isFullscreen)}
-                            style={{
-                                padding: '10px',
-                                color: '#6b7280',
-                                backgroundColor: 'transparent',
-                                border: '1px solid transparent',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseOver={(e) => {
-                                e.currentTarget.style.backgroundColor = '#f3f4f6';
-                                e.currentTarget.style.color = '#374151';
-                            }}
-                            onMouseOut={(e) => {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                                e.currentTarget.style.color = '#6b7280';
-                            }}
+                            className="btn-icon-only"
                             disabled={!hasGenerated}
                             title={isFullscreen ? "Vollbild beenden" : "Vollbild"}
                         >
                             {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
                         </button>
                         
-                        <div style={{ display: 'flex', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+                        <div className="btn-group">
                             <button
                                 onClick={exportHeatmapPng}
-                                style={{
-                                    padding: '10px 12px',
-                                    color: '#6b7280',
-                                    backgroundColor: '#fff',
-                                    border: 'none',
-                                    borderRight: '1px solid #e5e7eb',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    display: 'flex', alignItems: 'center', gap: '6px',
-                                    fontSize: '12px', fontWeight: 600
-                                }}
-                                onMouseOver={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#eff6ff';
-                                    e.currentTarget.style.color = '#2563eb';
-                                }}
-                                onMouseOut={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#fff';
-                                    e.currentTarget.style.color = '#6b7280';
-                                }}
+                                className="btn-group-item d-flex align-center gap-1 text-xs fw-bold"
                                 disabled={!hasGenerated}
                                 title="Als PNG speichern"
                             >
@@ -1695,25 +1462,7 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
                             </button>
                             <button
                                 onClick={exportHeatmapJpg}
-                                style={{
-                                    padding: '10px 12px',
-                                    color: '#6b7280',
-                                    backgroundColor: '#fff',
-                                    border: 'none',
-                                    borderRight: '1px solid #e5e7eb',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    display: 'flex', alignItems: 'center', gap: '6px',
-                                    fontSize: '12px', fontWeight: 600
-                                }}
-                                onMouseOver={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#eff6ff';
-                                    e.currentTarget.style.color = '#2563eb';
-                                }}
-                                onMouseOut={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#fff';
-                                    e.currentTarget.style.color = '#6b7280';
-                                }}
+                                className="btn-group-item d-flex align-center gap-1 text-xs fw-bold"
                                 disabled={!hasGenerated}
                                 title="Als JPG speichern"
                             >
@@ -1721,24 +1470,7 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
                             </button>
                             <button
                                 onClick={exportHeatmapSvg}
-                                style={{
-                                    padding: '10px 12px',
-                                    color: '#6b7280',
-                                    backgroundColor: '#fff',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    display: 'flex', alignItems: 'center', gap: '6px',
-                                    fontSize: '12px', fontWeight: 600
-                                }}
-                                onMouseOver={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#eff6ff';
-                                    e.currentTarget.style.color = '#2563eb';
-                                }}
-                                onMouseOut={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#fff';
-                                    e.currentTarget.style.color = '#6b7280';
-                                }}
+                                className="btn-group-item d-flex align-center gap-1 text-xs fw-bold"
                                 disabled={!hasGenerated}
                                 title="Als SVG speichern"
                             >
@@ -1752,17 +1484,15 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
         </div>
         
         {isComputing && (
-            <div style={{ marginBottom: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>
+            <div className="progress-container">
+                <div className="progress-header">
                     <span>{statusMessage}</span>
                     <span>{progress}%</span>
                 </div>
-                <div style={{ height: '6px', width: '100%', backgroundColor: '#f3f4f6', borderRadius: '9999px', overflow: 'hidden' }}>
+                <div className="progress-track">
                     <div 
+                        className="progress-fill"
                         style={{ 
-                            height: '100%', 
-                            backgroundColor: '#3b82f6', 
-                            transition: 'width 0.3s ease-in-out',
                             width: `${progress}%` 
                         }} 
                     />
@@ -1772,26 +1502,8 @@ const MentalMapHeatmap = ({ mentalMapData, participantCodes, questionLabels = {}
 
         <div 
             ref={containerRef} 
-            className="map-container"
-            style={{
-                height: isFullscreen ? 'calc(100vh - 150px)' : '70vh', 
-                minHeight: '400px',
-                width: '100%', 
-                display: 'block',
-                position: 'relative',
-                border: '1px solid #e5e7eb',
-                borderBottom: '1px solid #e5e7eb',
-                borderRadius: isFullscreen ? '0' : '8px',
-                overflow: 'hidden'
-            }} 
+            className={`map-container-heatmap ${isFullscreen ? 'map-heatmap-fullscreen' : 'map-heatmap-default'}`}
         >
-             <style>{`
-            .leaflet-container img {
-                max-width: none !important;
-                max-height: none !important;
-            }
-            .leaflet-pane { z-index: 1 !important; }
-            `}</style>
         </div>
         
       </div>

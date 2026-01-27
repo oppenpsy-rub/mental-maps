@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from './Auth';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import './index.css';
 
 function Profile() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const { currentUser, setCurrentUser } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
@@ -107,267 +110,312 @@ function Profile() {
   };
 
   return (
-    <div style={{ 
-      maxWidth: '600px', 
-      margin: '40px auto', 
-      padding: '30px',
-      backgroundColor: 'white',
-      borderRadius: '8px',
-      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-      border: '1px solid #dee2e6'
-    }}>
-      <div style={{ 
+    <div style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}>
+      <div style={{
+        background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
+        color: 'white',
+        padding: '40px 30px',
         marginBottom: '30px',
-        paddingBottom: '20px',
-        borderBottom: '2px solid #e9ecef'
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
       }}>
-        <h2 style={{ 
-          margin: '0 0 8px 0', 
-          color: '#2c3e50', 
-          fontSize: '1.8em',
-          fontWeight: '600'
-        }}>
-          {t('profile')}
-        </h2>
-        <p style={{ 
-          margin: '0', 
-          color: '#6c757d',
-          fontSize: '0.95em'
-        }}>
-          {t('profile_description')}
-        </p>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <h1 style={{ margin: 0, fontSize: '2em', fontWeight: '600' }}>
+            {t('profile')}
+          </h1>
+          <p style={{ margin: '10px 0 0 0', opacity: 0.9 }}>
+            {t('profile_description')}
+          </p>
+        </div>
       </div>
-
-      {message.text && (
+      
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 30px 30px' }}>
         <div style={{
-          padding: '12px 16px',
-          marginBottom: '20px',
-          borderRadius: '4px',
-          backgroundColor: message.type === 'success' ? '#d4edda' : '#f8d7da',
-          color: message.type === 'success' ? '#155724' : '#721c24',
-          border: `1px solid ${message.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`
+          backgroundColor: 'white',
+          padding: '30px',
+          borderRadius: '10px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
         }}>
-          {message.text}
-        </div>
-      )}
 
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ 
-            display: 'block', 
-            marginBottom: '6px', 
-            fontWeight: '500',
-            color: '#495057'
+        {message.text && (
+          <div style={{
+            padding: '12px 16px',
+            borderRadius: '8px',
+            marginBottom: '20px',
+            backgroundColor: message.type === 'success' ? '#eef4ee' : '#f8eded',
+            border: `1px solid ${message.type === 'success' ? '#c8e7d3' : '#e6b8b8'}`,
+            color: message.type === 'success' ? '#1f3b2d' : '#7a1f1f',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
           }}>
-            Name *
-          </label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            disabled={!isEditing}
-            required
-            style={{
-              width: '100%',
-              padding: '10px 12px',
-              border: '1px solid #ced4da',
-              borderRadius: '4px',
-              fontSize: '14px',
-              backgroundColor: isEditing ? 'white' : '#f8f9fa',
-              color: isEditing ? '#495057' : '#6c757d'
-            }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ 
-            display: 'block', 
-            marginBottom: '6px', 
-            fontWeight: '500',
-            color: '#495057'
-          }}>
-            E-Mail *
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            disabled={!isEditing}
-            required
-            style={{
-              width: '100%',
-              padding: '10px 12px',
-              border: '1px solid #ced4da',
-              borderRadius: '4px',
-              fontSize: '14px',
-              backgroundColor: isEditing ? 'white' : '#f8f9fa',
-              color: isEditing ? '#495057' : '#6c757d'
-            }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ 
-            display: 'block', 
-            marginBottom: '6px', 
-            fontWeight: '500',
-            color: '#495057'
-          }}>
-            Institution
-          </label>
-          <input
-            type="text"
-            name="institution"
-            value={formData.institution}
-            onChange={handleInputChange}
-            disabled={!isEditing}
-            placeholder={t('organization_placeholder')}
-            style={{
-              width: '100%',
-              padding: '10px 12px',
-              border: '1px solid #ced4da',
-              borderRadius: '4px',
-              fontSize: '14px',
-              backgroundColor: isEditing ? 'white' : '#f8f9fa',
-              color: isEditing ? '#495057' : '#6c757d'
-            }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ 
-            display: 'block', 
-            marginBottom: '6px', 
-            fontWeight: '500',
-            color: '#495057'
-          }}>
-            Abteilung/Fachbereich
-          </label>
-          <input
-            type="text"
-            name="department"
-            value={formData.department}
-            onChange={handleInputChange}
-            disabled={!isEditing}
-            placeholder="z.B. Psychologie, Geographie"
-            style={{
-              width: '100%',
-              padding: '10px 12px',
-              border: '1px solid #ced4da',
-              borderRadius: '4px',
-              fontSize: '14px',
-              backgroundColor: isEditing ? 'white' : '#f8f9fa',
-              color: isEditing ? '#495057' : '#6c757d'
-            }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '30px' }}>
-          <label style={{ 
-            display: 'block', 
-            marginBottom: '6px', 
-            fontWeight: '500',
-            color: '#495057'
-          }}>
-            Sprache
-          </label>
-          <select
-            name="language"
-            value={formData.language}
-            onChange={handleLanguageChange}
-            disabled={!isEditing}
-            style={{
-              width: '100%',
-              padding: '10px 12px',
-              border: '1px solid #ced4da',
-              borderRadius: '4px',
-              fontSize: '14px',
-              backgroundColor: isEditing ? 'white' : '#f8f9fa',
-              color: isEditing ? '#495057' : '#6c757d'
-            }}
-          >
-            {languages.map(lang => (
-              <option key={lang.code} value={lang.code}>
-                {lang.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ 
-          display: 'flex', 
-          gap: '12px',
-          justifyContent: 'flex-end'
-        }}>
-          {!isEditing ? (
-            <button
-              type="button"
-              onClick={() => setIsEditing(true)}
+            <div>{message.text}</div>
+            <button 
+              onClick={() => setMessage({ type: '', text: '' })} 
               style={{
-                padding: '10px 20px',
-                backgroundColor: '#007bff',
-                color: 'white',
+                background: 'none',
                 border: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontWeight: '500',
+                fontSize: '20px',
                 cursor: 'pointer',
-                transition: 'background-color 0.2s'
+                color: 'inherit',
+                padding: '0 5px'
               }}
-              onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
-              onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
+            >×</button>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontWeight: '500',
+              color: '#2c3e50'
+            }}>
+              Name *
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              disabled={!isEditing}
+              required
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '6px',
+                border: '1px solid #d7dce3',
+                backgroundColor: isEditing ? '#ffffff' : '#f8fafc',
+                color: '#2c3e50',
+                fontSize: '1rem',
+                transition: 'all 0.2s ease',
+                cursor: isEditing ? 'text' : 'not-allowed'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontWeight: '500',
+              color: '#2c3e50'
+            }}>
+              E-Mail *
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              disabled={!isEditing}
+              required
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '6px',
+                border: '1px solid #d7dce3',
+                backgroundColor: isEditing ? '#ffffff' : '#f8fafc',
+                color: '#2c3e50',
+                fontSize: '1rem',
+                transition: 'all 0.2s ease',
+                cursor: isEditing ? 'text' : 'not-allowed'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontWeight: '500',
+              color: '#2c3e50'
+            }}>
+              Institution
+            </label>
+            <input
+              type="text"
+              name="institution"
+              value={formData.institution}
+              onChange={handleInputChange}
+              disabled={!isEditing}
+              placeholder={t('organization_placeholder')}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '6px',
+                border: '1px solid #d7dce3',
+                backgroundColor: isEditing ? '#ffffff' : '#f8fafc',
+                color: '#2c3e50',
+                fontSize: '1rem',
+                transition: 'all 0.2s ease',
+                cursor: isEditing ? 'text' : 'not-allowed'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontWeight: '500',
+              color: '#2c3e50'
+            }}>
+              Abteilung/Fachbereich
+            </label>
+            <input
+              type="text"
+              name="department"
+              value={formData.department}
+              onChange={handleInputChange}
+              disabled={!isEditing}
+              placeholder="z.B. Psychologie, Geographie"
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '6px',
+                border: '1px solid #d7dce3',
+                backgroundColor: isEditing ? '#ffffff' : '#f8fafc',
+                color: '#2c3e50',
+                fontSize: '1rem',
+                transition: 'all 0.2s ease',
+                cursor: isEditing ? 'text' : 'not-allowed'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontWeight: '500',
+              color: '#2c3e50'
+            }}>
+              Sprache
+            </label>
+            <select
+              name="language"
+              value={formData.language}
+              onChange={handleLanguageChange}
+              disabled={!isEditing}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '6px',
+                border: '1px solid #d7dce3',
+                backgroundColor: isEditing ? '#ffffff' : '#f8fafc',
+                color: '#2c3e50',
+                fontSize: '1rem',
+                transition: 'all 0.2s ease',
+                cursor: isEditing ? 'pointer' : 'not-allowed'
+              }}
             >
-              {t('edit')}
-            </button>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={handleCancel}
-                disabled={loading}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.6 : 1,
-                  transition: 'background-color 0.2s'
-                }}
-                onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#545b62')}
-                onMouseOut={(e) => !loading && (e.target.style.backgroundColor = '#6c757d')}
-              >
-                {t('cancel')}
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.6 : 1,
-                  transition: 'background-color 0.2s'
-                }}
-                onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#1e7e34')}
-                onMouseOut={(e) => !loading && (e.target.style.backgroundColor = '#28a745')}
-              >
-                {loading ? t('saving') : t('save')}
-              </button>
-            </>
-          )}
+              {languages.map(lang => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            justifyContent: 'flex-end',
+            borderTop: '1px solid #e5e7eb',
+            paddingTop: '20px',
+            marginTop: '24px'
+          }}>
+            {!isEditing ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin')}
+                  style={{
+                    padding: '10px 16px',
+                    backgroundColor: '#95a5a6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#7f8c8d'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = '#95a5a6'}
+                >
+                  {t('back')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  style={{
+                    padding: '10px 16px',
+                    backgroundColor: '#2c3e50',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#1a252f'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = '#2c3e50'}
+                >
+                  {t('edit')}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  disabled={loading}
+                  style={{
+                    padding: '10px 16px',
+                    backgroundColor: '#95a5a6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    transition: 'all 0.2s ease',
+                    opacity: loading ? 0.6 : 1
+                  }}
+                  onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#7f8c8d')}
+                  onMouseOut={(e) => !loading && (e.target.style.backgroundColor = '#95a5a6')}
+                >
+                  {t('cancel')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    padding: '10px 16px',
+                    backgroundColor: '#27ae60',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    transition: 'all 0.2s ease',
+                    opacity: loading ? 0.6 : 1
+                  }}
+                  onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#229954')}
+                  onMouseOut={(e) => !loading && (e.target.style.backgroundColor = '#27ae60')}
+                >
+                  {loading ? t('saving') : t('save')}
+                </button>
+              </>
+            )}
+          </div>
+        </form>
         </div>
-      </form>
+      </div>
     </div>
   );
 }
