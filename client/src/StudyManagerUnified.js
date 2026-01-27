@@ -28,6 +28,7 @@ function StudyManagerUnified() {
   const [showExport, setShowExport] = useState(false);
   const [audioFiles, setAudioFiles] = useState([]);
   const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const [newStudy, setNewStudy] = useState({
     name: '',
@@ -538,112 +539,249 @@ function StudyManagerUnified() {
       <div style={{ 
         background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
         color: 'white',
-        padding: '40px 30px',
-        marginBottom: '40px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100
       }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', position: 'relative', padding: '0 max(12px, 3vw)' }}>
-          <h1 style={{ margin: '0 0 8px 0', fontSize: '2.4em', fontWeight: '700', letterSpacing: '-0.5px' }}>{t('study_manager_title')}</h1>
-          <p style={{ margin: '0', fontSize: '1em', color: 'rgba(255, 255, 255, 0.9)', fontWeight: '300' }}>
-            {t('study_manager_description')}
-          </p>
-          
-          {/* Profile and Logout Buttons */}
+        {/* Mobile Header */}
+        <div style={{ display: 'none' }} className="mobile-header-display">
           <div style={{
-            position: 'absolute',
-            top: '0',
-            right: '0',
             display: 'flex',
-            gap: '12px',
-            transform: 'translate(0, -6px)'
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 16px',
+            maxWidth: '1400px',
+            margin: '0 auto'
           }}>
+            <h1 style={{ margin: 0, fontSize: '1.3em', fontWeight: '700' }}>{t('study_manager_title')}</h1>
             <button
-              onClick={() => navigate('/admin/profile')}
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               style={{
-                padding: '10px 18px',
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                color: 'white',
+                background: 'rgba(255, 255, 255, 0.2)',
                 border: '1px solid rgba(255, 255, 255, 0.3)',
-                borderRadius: '6px',
+                color: 'white',
+                padding: '8px 12px',
+                borderRadius: '4px',
                 cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500'
+                fontSize: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '44px',
+                minHeight: '44px'
               }}
-              onMouseOver={(e) => { e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.25)'; e.target.style.borderColor = 'rgba(255, 255, 255, 0.5)'; }}
-              onMouseOut={(e) => { e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.15)'; e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)'; }}
+              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+            >
+              ☰
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop Header */}
+        <div style={{ display: 'none' }} className="desktop-header-display">
+          <div style={{ padding: '40px 30px' }}>
+            <div style={{ maxWidth: '1400px', margin: '0 auto', position: 'relative', padding: '0 max(12px, 3vw)' }}>
+              <h1 style={{ margin: '0 0 8px 0', fontSize: '2.4em', fontWeight: '700', letterSpacing: '-0.5px' }}>{t('study_manager_title')}</h1>
+              <p style={{ margin: '0', fontSize: '1em', color: 'rgba(255, 255, 255, 0.9)', fontWeight: '300' }}>
+                {t('study_manager_description')}
+              </p>
+              
+              {/* Profile and Logout Buttons */}
+              <div style={{
+                position: 'absolute',
+                top: '0',
+                right: '0',
+                display: 'flex',
+                gap: '12px',
+                transform: 'translate(0, -6px)'
+              }}>
+                <button
+                  onClick={() => navigate('/admin/profile')}
+                  style={{
+                    padding: '10px 18px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    color: 'white',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    minHeight: '44px'
+                  }}
+                  onMouseOver={(e) => { e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.25)'; e.target.style.borderColor = 'rgba(255, 255, 255, 0.5)'; }}
+                  onMouseOut={(e) => { e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.15)'; e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)'; }}
+                >
+                  Profile
+                </button>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    padding: '10px 18px',
+                    backgroundColor: 'rgba(192, 57, 43, 0.9)',
+                    color: 'white',
+                    border: '1px solid rgba(192, 57, 43, 1)',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    minHeight: '44px'
+                  }}
+                  onMouseOver={(e) => { e.target.style.backgroundColor = 'rgba(192, 57, 43, 1)'; e.target.style.boxShadow = '0 4px 12px rgba(192, 57, 43, 0.3)'; }}
+                  onMouseOut={(e) => { e.target.style.backgroundColor = 'rgba(192, 57, 43, 0.9)'; e.target.style.boxShadow = 'none'; }}
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Tabs - Desktop */}
+        <div style={{ display: 'none' }} className="desktop-nav-display">
+          <div style={{ 
+            maxWidth: '1400px',
+            margin: '0 auto',
+            padding: '0 max(12px, 3vw)',
+            display: 'flex', 
+            borderBottom: '2px solid #e8ecf1',
+            backgroundColor: '#2c3e50',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+            overflow: 'auto',
+            minHeight: '60px'
+          }}>
+            {[
+              { id: 'studies', label: t('manage_studies'), icon: '' },
+              { id: 'published', label: t('published_studies'), icon: '' },
+              { id: 'analytics', label: t('analytics_export'), icon: '' },
+              { id: 'users', label: t('user_management'), icon: '' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => { setActiveTab(tab.id); setMobileMenuOpen(false); }}
+                style={{
+                  padding: '15px 25px',
+                  backgroundColor: activeTab === tab.id ? '#1a252f' : 'transparent',
+                  color: activeTab === tab.id ? 'white' : '#b0b8c1',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '15px',
+                  fontWeight: activeTab === tab.id ? '600' : '500',
+                  transition: 'all 0.2s ease',
+                  borderBottom: activeTab === tab.id ? '3px solid #3498db' : '3px solid transparent',
+                  whiteSpace: 'nowrap',
+                  minHeight: '44px',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+                onMouseOver={(e) => {
+                  if (activeTab !== tab.id) {
+                    e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    e.target.style.color = 'white';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (activeTab !== tab.id) {
+                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.color = '#b0b8c1';
+                  }
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Navigation Tabs - Mobile */}
+        {mobileMenuOpen && (
+          <div style={{
+            display: 'none',
+            backgroundColor: '#34495e',
+            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+            padding: '8px 0',
+            animation: 'slideDown 0.3s ease'
+          }} className="mobile-nav-display">
+            {[
+              { id: 'studies', label: t('manage_studies'), icon: '' },
+              { id: 'published', label: t('published_studies'), icon: '' },
+              { id: 'analytics', label: t('analytics_export'), icon: '' },
+              { id: 'users', label: t('user_management'), icon: '' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => { setActiveTab(tab.id); setMobileMenuOpen(false); }}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '16px 20px',
+                  backgroundColor: activeTab === tab.id ? '#2c3e50' : 'transparent',
+                  color: activeTab === tab.id ? '#3498db' : '#b0b8c1',
+                  border: 'none',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  fontSize: '15px',
+                  fontWeight: activeTab === tab.id ? '600' : '500',
+                  transition: 'all 0.2s ease',
+                  borderLeft: activeTab === tab.id ? '3px solid #3498db' : '3px solid transparent',
+                  minHeight: '44px',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+            <hr style={{ margin: '8px 0', borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+            <button
+              onClick={() => { navigate('/admin/profile'); setMobileMenuOpen(false); }}
+              style={{
+                display: 'block',
+                width: '100%',
+                padding: '16px 20px',
+                backgroundColor: 'transparent',
+                color: '#b0b8c1',
+                border: 'none',
+                textAlign: 'left',
+                cursor: 'pointer',
+                fontSize: '15px',
+                minHeight: '44px',
+                display: 'flex',
+                alignItems: 'center'
+              }}
+              onMouseOver={(e) => e.target.style.color = 'white'}
+              onMouseOut={(e) => e.target.style.color = '#b0b8c1'}
             >
               Profile
             </button>
             <button
-              onClick={handleLogout}
+              onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
               style={{
-                padding: '10px 18px',
-                backgroundColor: 'rgba(192, 57, 43, 0.9)',
-                color: 'white',
-                border: '1px solid rgba(192, 57, 43, 1)',
-                borderRadius: '6px',
+                display: 'block',
+                width: '100%',
+                padding: '16px 20px',
+                backgroundColor: 'rgba(192, 57, 43, 0.3)',
+                color: '#ec7063',
+                border: 'none',
+                textAlign: 'left',
                 cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500'
+                fontSize: '15px',
+                fontWeight: '500',
+                minHeight: '44px',
+                display: 'flex',
+                alignItems: 'center'
               }}
-              onMouseOver={(e) => { e.target.style.backgroundColor = 'rgba(192, 57, 43, 1)'; e.target.style.boxShadow = '0 4px 12px rgba(192, 57, 43, 0.3)'; }}
-              onMouseOut={(e) => { e.target.style.backgroundColor = 'rgba(192, 57, 43, 0.9)'; e.target.style.boxShadow = 'none'; }}
+              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(192, 57, 43, 0.5)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'rgba(192, 57, 43, 0.3)'}
             >
               Logout
             </button>
           </div>
-        </div>
+        )}
       </div>
 
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 max(12px, 3vw) 40px' }}>
-      {/* Navigation Tabs */}
-      <div style={{ 
-        display: 'flex', 
-        borderBottom: '2px solid #e8ecf1',
-        marginBottom: '30px',
-        backgroundColor: 'white',
-        paddingLeft: 'max(12px, 3vw)',
-        paddingRight: 'max(12px, 3vw)',
-        paddingRight: '30px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-        overflow: 'x-auto',
-        border: '1px solid #dee2e6'
-      }}>
-        {[
-          { id: 'studies', label: t('manage_studies'), icon: '' },
-        { id: 'published', label: t('published_studies'), icon: '' },
-        { id: 'analytics', label: t('analytics_export'), icon: '' },
-        { id: 'users', label: t('user_management'), icon: '' }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            style={{
-              padding: '15px 25px',
-              backgroundColor: activeTab === tab.id ? '#2c3e50' : 'transparent',
-              color: activeTab === tab.id ? 'white' : '#6c757d',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '15px',
-              fontWeight: activeTab === tab.id ? '500' : 'normal',
-              transition: 'all 0.2s ease',
-              flex: 1
-            }}
-            onMouseOver={(e) => {
-              if (activeTab !== tab.id) {
-                e.target.style.backgroundColor = '#f8f9fa';
-              }
-            }}
-            onMouseOut={(e) => {
-              if (activeTab !== tab.id) {
-                e.target.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
 
       {/* Nachrichten */}
       {message && (

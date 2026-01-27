@@ -3298,6 +3298,110 @@ code {
   }
 }
 
+/* ============================================
+   RESPONSIVE NAVIGATION
+   Mobile Menu and Header Layouts
+   ============================================ */
+
+/* Mobile Navigation (< 640px) */
+@media (max-width: 640px) {
+  /* Show mobile header, hide desktop header */
+  .mobile-header-display {
+    display: block !important;
+  }
+
+  .desktop-header-display {
+    display: none !important;
+  }
+
+  /* Show mobile nav, hide desktop nav */
+  .mobile-nav-display {
+    display: block !important;
+  }
+
+  .desktop-nav-display {
+    display: none !important;
+  }
+
+  /* Hamburger animation */
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Add message margin after mobile header */
+  .study-manager-message {
+    margin-top: 16px;
+  }
+}
+
+/* Tablet Navigation (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .mobile-header-display {
+    display: none !important;
+  }
+
+  .desktop-header-display {
+    display: block !important;
+  }
+
+  .mobile-nav-display {
+    display: none !important;
+  }
+
+  .desktop-nav-display {
+    display: block !important;
+  }
+
+  /* Reduce header padding on tablet */
+  .desktop-header-display {
+    padding: 25px 20px !important;
+  }
+
+  .desktop-header-display h1 {
+    font-size: 2em !important;
+  }
+
+  .desktop-header-display p {
+    font-size: 0.9em !important;
+  }
+
+  /* Stack Profile/Logout buttons vertically on smaller tablets */
+  @media (max-width: 800px) {
+    .desktop-header-display > div > div:last-child {
+      position: static !important;
+      transform: none !important;
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+}
+
+/* Desktop Navigation (> 1024px) */
+@media (min-width: 1025px) {
+  .mobile-header-display {
+    display: none !important;
+  }
+
+  .desktop-header-display {
+    display: block !important;
+  }
+
+  .mobile-nav-display {
+    display: none !important;
+  }
+
+  .desktop-nav-display {
+    display: block !important;
+  }
+}
+
 /* Print Styles */
 @media print {
   .app-header,
@@ -3305,7 +3409,11 @@ code {
   .editor-sidebar,
   .landing-nav,
   .action-button,
-  .public-survey .action-button {
+  .public-survey .action-button,
+  .mobile-header-display,
+  .desktop-header-display,
+  .desktop-nav-display,
+  .mobile-nav-display {
     display: none;
   }
 
