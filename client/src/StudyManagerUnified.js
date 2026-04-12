@@ -37,6 +37,7 @@ function StudyManagerUnified() {
     config: {
       language: 'de',
       showQuestionProgress: true,
+      showParticipantCode: true,
       completionMode: 'page',
       completionRedirectUrl: '',
       questions: [],
@@ -181,6 +182,10 @@ function StudyManagerUnified() {
         study.config.showQuestionProgress = true;
       }
 
+      if (study.config.showParticipantCode === undefined) {
+        study.config.showParticipantCode = true;
+      }
+
       if (study.config.completionMode !== 'redirect') {
         study.config.completionMode = 'page';
       }
@@ -234,6 +239,7 @@ function StudyManagerUnified() {
         config: {
           language: 'de',
           showQuestionProgress: true,
+          showParticipantCode: true,
           completionMode: 'page',
           completionRedirectUrl: '',
           questions: [],
@@ -989,6 +995,31 @@ function StudyManagerUnified() {
                       </div>
                       <div style={{ fontSize: '14px', color: '#6c757d' }}>
                         {t('show_question_progress_description')}
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
+                <div style={{ padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={newStudy.config.showParticipantCode !== false}
+                      onChange={(e) => setNewStudy({
+                        ...newStudy,
+                        config: {
+                          ...newStudy.config,
+                          showParticipantCode: e.target.checked
+                        }
+                      })}
+                      style={{ marginTop: '4px', transform: 'scale(1.2)' }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: 'bold', color: '#495057', marginBottom: '4px' }}>
+                        {t('show_participant_code')}
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#6c757d' }}>
+                        {t('show_participant_code_description')}
                       </div>
                     </div>
                   </label>
@@ -1783,6 +1814,31 @@ function StudyManagerUnified() {
                     </div>
                     <div style={{ fontSize: '14px', color: '#6c757d' }}>
                       {t('capture_geolocation_description')}
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={editingStudy.config.showParticipantCode !== false}
+                    onChange={(e) => setEditingStudy({
+                      ...editingStudy,
+                      config: {
+                        ...editingStudy.config,
+                        showParticipantCode: e.target.checked
+                      }
+                    })}
+                    style={{ marginTop: '4px', transform: 'scale(1.2)' }}
+                  />
+                  <div>
+                    <div style={{ fontWeight: 'bold', color: '#495057', marginBottom: '4px' }}>
+                      {t('show_participant_code')}
+                    </div>
+                    <div style={{ fontSize: '14px', color: '#6c757d' }}>
+                      {t('show_participant_code_description')}
                     </div>
                   </div>
                 </label>

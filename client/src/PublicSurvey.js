@@ -150,6 +150,10 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
         config.showQuestionProgress = true;
       }
 
+      if (config.showParticipantCode === undefined) {
+        config.showParticipantCode = true;
+      }
+
       if (config.completionMode !== 'redirect') {
         config.completionMode = 'page';
       }
@@ -507,12 +511,14 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
   }
 
   if (surveyCompleted) {
+    const showParticipantCode = study?.config?.showParticipantCode !== false;
+
     return (
       <div className="d-flex flex-column justify-center align-center vh-100 p-3 bg-light">
         <div className="card p-5 shadow-lg max-w-400 w-100 text-center">
           <h1 className="mb-3" style={{ color: '#28a745' }}>{t('survey_complete')}</h1>
           <p className="mb-4 text-muted">{t('thank_you')}</p>
-          {completionParticipantCode && (
+          {showParticipantCode && completionParticipantCode && (
             <div className="mb-4 p-3" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
               <div style={{ fontSize: '14px', color: '#6c757d', marginBottom: '6px' }}>{t('participant_code')}</div>
               <div style={{ fontWeight: 'bold', fontSize: '18px', color: '#2c3e50' }}>{completionParticipantCode}</div>
@@ -697,6 +703,7 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
   }
 
   const showQuestionProgress = study?.config?.showQuestionProgress !== false;
+  const showParticipantCode = study?.config?.showParticipantCode !== false;
 
   return (
     <div className="App public-survey">
@@ -763,7 +770,7 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
         
         <div className="header-right">
           {/* Teilnehmercode oben rechts */}
-          {participantCode && (
+          {showParticipantCode && participantCode && (
             <div className="participant-code-header">
               <span>Code: {participantCode}</span>
               <button
