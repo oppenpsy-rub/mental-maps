@@ -36,6 +36,7 @@ function StudyManagerUnified() {
     name: '',
     config: {
       language: 'de',
+      showQuestionProgress: true,
       questions: [],
       mapConfig: {
         center: [48.8566, 2.3522], // Paris als Standard
@@ -63,6 +64,25 @@ function StudyManagerUnified() {
     loadAudioFiles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!message) {
+      return;
+    }
+
+    const normalizedMessage = message.toLowerCase();
+    const isErrorMessage = normalizedMessage.includes('fehler') || normalizedMessage.includes('error');
+
+    if (isErrorMessage) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setMessage('');
+    }, 4000);
+
+    return () => clearTimeout(timeoutId);
+  }, [message]);
 
   const loadAudioFiles = async () => {
     try {
@@ -154,6 +174,10 @@ function StudyManagerUnified() {
       if (!study.config.questions) {
         study.config.questions = [];
       }
+
+      if (study.config.showQuestionProgress === undefined) {
+        study.config.showQuestionProgress = true;
+      }
       
       setEditingStudy(study);
       setActiveTab('edit');
@@ -199,6 +223,7 @@ function StudyManagerUnified() {
         name: '',
         config: {
           language: 'de',
+          showQuestionProgress: true,
           questions: [],
           mapConfig: {
             center: [48.8566, 2.3522],
@@ -1663,6 +1688,31 @@ function StudyManagerUnified() {
                     </div>
                     <div style={{ fontSize: '14px', color: '#6c757d' }}>
                       {t('capture_geolocation_description')}
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={editingStudy.config.showQuestionProgress !== false}
+                    onChange={(e) => setEditingStudy({
+                      ...editingStudy,
+                      config: {
+                        ...editingStudy.config,
+                        showQuestionProgress: e.target.checked
+                      }
+                    })}
+                    style={{ marginTop: '4px', transform: 'scale(1.2)' }}
+                  />
+                  <div>
+                    <div style={{ fontWeight: 'bold', color: '#495057', marginBottom: '4px' }}>
+                      Fragenfortschritt anzeigen
+                    </div>
+                    <div style={{ fontSize: '14px', color: '#6c757d' }}>
+                      Zeigt die Anzeige "Question X of Y" im Umfrage-Header an oder blendet sie aus.
                     </div>
                   </div>
                 </label>

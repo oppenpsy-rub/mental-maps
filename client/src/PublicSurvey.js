@@ -144,6 +144,10 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
         config.questions = [];
       }
 
+      if (config.showQuestionProgress === undefined) {
+        config.showQuestionProgress = true;
+      }
+
       console.log('Normalized config in PublicSurvey:', config);
       
       if (response.data.requiresAccessCode && !accessCode) {
@@ -696,6 +700,8 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
     );
   }
 
+  const showQuestionProgress = study?.config?.showQuestionProgress !== false;
+
   return (
     <div className="App public-survey">
       {isPreview && (
@@ -749,9 +755,11 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
         <div className="header-left">
           {currentQuestion && (
             <div className="question-info">
-              <span className="question-counter">
-                {t('question')} {currentQuestionIndex + 1} {t('of')} {questions.length}
-              </span>
+              {showQuestionProgress && (
+                <span className="question-counter">
+                  {t('question')} {currentQuestionIndex + 1} {t('of')} {questions.length}
+                </span>
+              )}
               <h2 className="question-text">{currentQuestion.text}</h2>
             </div>
           )}

@@ -15,6 +15,25 @@ function Admin() {
     loadAudioFiles();
   }, []);
 
+  useEffect(() => {
+    if (!message) {
+      return;
+    }
+
+    const normalizedMessage = message.toLowerCase();
+    const isErrorMessage = normalizedMessage.includes('fehler') || normalizedMessage.includes('error');
+
+    if (isErrorMessage) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setMessage('');
+    }, 4000);
+
+    return () => clearTimeout(timeoutId);
+  }, [message]);
+
   const loadAudioFiles = async () => {
     try {
       const response = await axios.get('/api/audio/files');

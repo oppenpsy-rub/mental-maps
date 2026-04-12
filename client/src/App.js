@@ -112,6 +112,7 @@ const DEMO_STUDY = {
   name: "Demo: VOICE Mental Maps - English Language Perception Study",
   description: "This is a demonstration of VOICE Mental Maps with sample questions about English language perceptions. Your responses will not be saved.",
   config: {
+    showQuestionProgress: true,
     questions: [
       {
         id: 1,
@@ -451,6 +452,8 @@ function HomeRoute() {
     );
   }
 
+  const showQuestionProgress = currentStudy?.config?.showQuestionProgress !== false;
+
   return (
     <div className="App public-survey">
       {/* Demo Banner */}
@@ -475,9 +478,11 @@ function HomeRoute() {
         <div className="header-left">
           {currentQuestion && (
             <div className="question-info">
-              <span className="question-counter">
-                {t('question')} {currentQuestionIndex + 1} {t('of')} {questions.length}
-              </span>
+              {showQuestionProgress && (
+                <span className="question-counter">
+                  {t('question')} {currentQuestionIndex + 1} {t('of')} {questions.length}
+                </span>
+              )}
               <h2 className="question-text">{currentQuestion.text}</h2>
             </div>
           )}

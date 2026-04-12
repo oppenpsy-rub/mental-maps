@@ -43,6 +43,25 @@ function ExportManager({ studyId, studyName, onBack }) {
     }
   }, [studyId, loadSummary, loadParticipants]);
 
+  useEffect(() => {
+    if (!message) {
+      return;
+    }
+
+    const normalizedMessage = message.toLowerCase();
+    const isErrorMessage = normalizedMessage.includes('fehler') || normalizedMessage.includes('error');
+
+    if (isErrorMessage) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setMessage('');
+    }, 4000);
+
+    return () => clearTimeout(timeoutId);
+  }, [message]);
+
   const downloadGeoJSON = async () => {
     setLoading(true);
     try {
