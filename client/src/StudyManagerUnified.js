@@ -192,8 +192,7 @@ function StudyManagerUnified() {
 
     try {
       setLoading({...loading, create: true});
-              { id: 'questions', label: t('manage_questions') },
-              { id: 'sharing', label: 'Freigaben' }
+      await axios.post('/api/studies', newStudy);
       setMessage(t('study_created_successfully'));
       setShowNewStudyForm(false);
       setNewStudy({
