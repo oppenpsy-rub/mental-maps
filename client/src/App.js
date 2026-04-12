@@ -238,6 +238,7 @@ function HomeRoute() {
       setCurrentQuestionIndex(nextIndex);
       setCurrentQuestion(questions[nextIndex]);
       setPolygons([]);
+      window.clearAllPolygons && window.clearAllPolygons();
     } else {
       // VORSCHAU-MODUS: Zeige Hinweis statt echten Abschluss
       const modal = document.createElement('div');
@@ -265,6 +266,7 @@ function HomeRoute() {
         setCurrentQuestionIndex(0);
         setCurrentQuestion(questions[0]);
         setPolygons([]);
+        window.clearAllPolygons && window.clearAllPolygons();
       };
       
       document.getElementById('closeModal').onclick = closeModal;
@@ -460,6 +462,8 @@ function HomeRoute() {
             setShowDemo(false);
             setCurrentQuestion(null);
             setCurrentStudy(null);
+            setPolygons([]);
+            window.clearAllPolygons && window.clearAllPolygons();
           }}
         >
           Zurück zur Startseite
@@ -856,6 +860,23 @@ function MapDrawingLayer({ onPolygonsChange, onDrawingChange, currentQuestion })
     window.clearAllPolygons = clearPolygons;
     window.isDrawing = isDrawing;
   }, [isDrawing, startDrawing, stopDrawing, clearPolygons]);
+
+  useEffect(() => {
+    if (!map) {
+      return;
+    }
+
+    clearPolygons();
+    setPoints([]);
+    if (currentPath) {
+      map.removeLayer(currentPath);
+      setCurrentPath(null);
+    }
+    setIsMouseDown(false);
+    setIsDrawing(false);
+    onDrawingChange(false);
+    map.getContainer().style.cursor = '';
+  }, [currentQuestion?.id]);
 
   return null;
 }

@@ -29,6 +29,8 @@ function StudyManagerUnified() {
   const [audioFiles, setAudioFiles] = useState([]);
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [collaborationCandidates, setCollaborationCandidates] = useState([]);
+  const [selectedCollaboratorIds, setSelectedCollaboratorIds] = useState([]);
   
   const [newStudy, setNewStudy] = useState({
     name: '',
@@ -103,6 +105,24 @@ function StudyManagerUnified() {
     }
   };
 
+  const loadCollaborationUsers = async (studyId) => {
+    try {
+      const [candidatesRes, collaboratorsRes] = await Promise.all([
+        axios.get('/api/users/collaboration-candidates'),
+        axios.get(`/api/studies/${studyId}/collaborators`)
+      ]);
+
+      setCollaborationCandidates(Array.isArray(candidatesRes.data) ? candidatesRes.data : []);
+      setSelectedCollaboratorIds(
+        (Array.isArray(collaboratorsRes.data) ? collaboratorsRes.data : []).map((u) => Number(u.id))
+      );
+    } catch (error) {
+      console.error('Fehler beim Laden der Freigabenutzer:', error);
+      setCollaborationCandidates([]);
+      setSelectedCollaboratorIds([]);
+    }
+  };
+
   // Studie laden zum Bearbeiten
   const loadStudyForEditing = async (studyId) => {
     try {
@@ -137,9 +157,29 @@ function StudyManagerUnified() {
       
       setEditingStudy(study);
       setActiveTab('edit');
+      await loadCollaborationUsers(studyId);
     } catch (error) {
       console.error('Fehler beim Laden der Studie:', error);
       setMessage(t('error_loading_study'));
+    }
+  };
+
+  const saveCollaborators = async () => {
+    if (!editingStudy?.id) {
+      return;
+    }
+
+    try {
+      setLoading({ ...loading, share: true });
+      await axios.put(`/api/studies/${editingStudy.id}/collaborators`, {
+        userIds: selectedCollaboratorIds
+      });
+      setMessage('Freigaben erfolgreich gespeichert.');
+    } catch (error) {
+      console.error('Fehler beim Speichern der Freigaben:', error);
+      setMessage('Fehler beim Speichern der Freigaben.');
+    } finally {
+      setLoading({ ...loading, share: false });
     }
   };
 
@@ -152,7 +192,8 @@ function StudyManagerUnified() {
 
     try {
       setLoading({...loading, create: true});
-      await axios.post('/api/studies', newStudy);
+              { id: 'questions', label: t('manage_questions') },
+              { id: 'sharing', label: 'Freigaben' }
       setMessage(t('study_created_successfully'));
       setShowNewStudyForm(false);
       setNewStudy({
@@ -546,7 +587,7 @@ function StudyManagerUnified() {
         zIndex: 100
       }}>
         {/* Mobile Header */}
-        <div style={{ display: 'none' }} className="mobile-header-display">
+        <div className="mobile-header-display">
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -581,7 +622,7 @@ function StudyManagerUnified() {
         </div>
 
         {/* Desktop Header */}
-        <div style={{ display: 'none' }} className="desktop-header-display">
+        <div className="desktop-header-display">
           <div style={{ padding: '40px 30px' }}>
             <div style={{ maxWidth: '1400px', margin: '0 auto', position: 'relative', padding: '0 max(12px, 3vw)' }}>
               <h1 style={{ margin: '0 0 8px 0', fontSize: '2.4em', fontWeight: '700', letterSpacing: '-0.5px' }}>{t('study_manager_title')}</h1>
@@ -640,7 +681,7 @@ function StudyManagerUnified() {
         </div>
 
         {/* Navigation Tabs - Desktop */}
-        <div style={{ display: 'none' }} className="desktop-nav-display">
+        <div className="desktop-nav-display">
           <div style={{ 
             maxWidth: '1400px',
             margin: '0 auto',
@@ -698,7 +739,6 @@ function StudyManagerUnified() {
         {/* Navigation Tabs - Mobile */}
         {mobileMenuOpen && (
           <div style={{
-            display: 'none',
             backgroundColor: '#34495e',
             borderTop: '1px solid rgba(255, 255, 255, 0.1)',
             padding: '8px 0',
@@ -2150,6 +2190,80 @@ function StudyManagerUnified() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'edit_sharing' && (
+            <div style={{ marginBottom: '30px' }}>
+              <h3 style={{ color: '#495057', marginBottom: '20px' }}>Studie freigeben</h3>
+              <p style={{ color: '#6c757d', marginBottom: '16px' }}>
+                Waehlen Sie Nutzer aus, die diese Studie im Studienmanager sehen und bearbeiten duerfen.
+              </p>
+
+              {collaborationCandidates.length === 0 ? (
+                <div style={{
+                  padding: '20px',
+                  border: '1px dashed #ced4da',
+                  borderRadius: '8px',
+                  color: '#6c757d',
+                  backgroundColor: '#f8f9fa'
+                }}>
+                  Keine verfuegbaren Nutzer gefunden.
+                </div>
+              ) : (
+                <div style={{
+                  border: '1px solid #dee2e6',
+                  borderRadius: '8px',
+                  padding: '10px 14px',
+                  maxHeight: '320px',
+                  overflowY: 'auto',
+                  backgroundColor: '#fff'
+                }}>
+                  {collaborationCandidates.map((user) => {
+                    const checked = selectedCollaboratorIds.includes(Number(user.id));
+                    return (
+                      <label
+                        key={user.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '10px 4px',
+                          borderBottom: '1px solid #f1f3f5',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            const id = Number(user.id);
+                            if (e.target.checked) {
+                              setSelectedCollaboratorIds([...selectedCollaboratorIds, id]);
+                            } else {
+                              setSelectedCollaboratorIds(selectedCollaboratorIds.filter((v) => v !== id));
+                            }
+                          }}
+                        />
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontWeight: '600', color: '#2c3e50' }}>{user.name}</span>
+                          <span style={{ color: '#6c757d', fontSize: '13px' }}>{user.email}</span>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div style={{ marginTop: '16px' }}>
+                <button
+                  onClick={saveCollaborators}
+                  disabled={loading.share}
+                  style={getButtonStyle('primary', loading.share)}
+                >
+                  {loading.share ? 'Speichere...' : 'Freigaben speichern'}
+                </button>
+              </div>
             </div>
           )}
           

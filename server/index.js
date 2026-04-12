@@ -20,6 +20,8 @@ app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 app.use(extractUserLanguage); // Add language extraction middleware
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 // Configure Content Security Policy headers
 app.use((req, res, next) => {
   res.setHeader('Content-Security-Policy', 
@@ -93,8 +95,15 @@ async function initializeDatabase() {
       name VARCHAR(255) NOT NULL,
       config TEXT,
       status VARCHAR(50) DEFAULT 'draft',
+      owner_id INT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
+
+    try {
+      await connection.execute(`ALTER TABLE studies ADD COLUMN owner_id INT`);
+    } catch (error) {
+      // Column already exists, ignore error
+    }
 
     await connection.execute(`CREATE TABLE IF NOT EXISTS participants (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -137,6 +146,23 @@ async function initializeDatabase() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )`);
+
+    await connection.execute(`CREATE TABLE IF NOT EXISTS study_collaborators (
+      study_id INT NOT NULL,
+      user_id INT NOT NULL,
+      granted_by INT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (study_id, user_id),
+      FOREIGN KEY (study_id) REFERENCES studies (id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+      FOREIGN KEY (granted_by) REFERENCES users (id) ON DELETE CASCADE
+    )`);
+
+    try {
+      await connection.execute(`ALTER TABLE studies ADD CONSTRAINT fk_studies_owner FOREIGN KEY (owner_id) REFERENCES users (id)`);
+    } catch (error) {
+      // Constraint may already exist, ignore error
+    }
     
     // Add approved and pending columns to existing users table if they don't exist
     try {
@@ -157,17 +183,35 @@ async function initializeDatabase() {
     } catch (error) {
       // Column already exists, ignore error
     }
+
+    // Assign legacy studies without an owner to an admin (fallback: first user)
+    const [adminRows] = await connection.execute(`SELECT id FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1`);
+    let fallbackOwnerId = adminRows.length > 0 ? adminRows[0].id : null;
+    if (!fallbackOwnerId) {
+      const [userRows] = await connection.execute(`SELECT id FROM users ORDER BY id ASC LIMIT 1`);
+      fallbackOwnerId = userRows.length > 0 ? userRows[0].id : null;
+    }
+    if (fallbackOwnerId) {
+      await connection.execute(`UPDATE studies SET owner_id = ? WHERE owner_id IS NULL`, [fallbackOwnerId]);
+    }
     
     connection.release();
     console.log('Datenbank-Tabellen erfolgreich erstellt/überprüft');
   } catch (error) {
-    console.error('Fehler bei der Datenbankinitialisierung:', error);
-    process.exit(1);
+    console.error('❌ Fehler bei der Datenbankinitialisierung:', error);
+    console.warn('⚠️  Server wird trotzdem gestartet, falls nur Datenbankverbindung fehlt');
   }
 }
 
 // Datenbank beim Start initialisieren
-initializeDatabase();
+initializeDatabase().catch(err => {
+  console.error('❌ Kritischer Fehler beim Starten:', err);
+});
+
+// Wartezeit geben damit DB vorbereitet ist
+setTimeout(() => {
+  console.log('Server-Startsequenz abgeschlossen');
+}, 100);
 
 // Teilnehmer-Code Generator
 function generateParticipantCode() {
@@ -214,33 +258,69 @@ function authenticateToken(req, res, next) {
   });
 }
 
+async function getStudyWithAccess(studyId, userId) {
+  const [rows] = await pool.execute(
+    `SELECT s.*, 
+            CASE 
+              WHEN s.owner_id = ? THEN 1
+              WHEN sc.user_id IS NOT NULL THEN 1
+              ELSE 0
+            END AS has_access,
+            CASE WHEN s.owner_id = ? THEN 1 ELSE 0 END AS is_owner
+     FROM studies s
+     LEFT JOIN study_collaborators sc ON sc.study_id = s.id AND sc.user_id = ?
+     WHERE s.id = ?
+     LIMIT 1`,
+    [userId, userId, userId, studyId]
+  );
+
+  return rows[0] || null;
+}
+
 // API Routes
 
 // Auth Routes
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
+    const trimmedName = (name || '').trim();
+    const normalizedEmail = (email || '').trim().toLowerCase();
+    const rawPassword = password || '';
+
+    if (!trimmedName || !normalizedEmail || !rawPassword) {
+      return sendLocalizedResponse(res, 400, 'error.missing_required_fields', req.userLanguage);
+    }
+    if (!EMAIL_REGEX.test(normalizedEmail)) {
+      return sendLocalizedResponse(res, 400, 'auth.invalid_credentials', req.userLanguage, {
+        message: 'Invalid email format.'
+      });
+    }
+    if (rawPassword.length < 8) {
+      return sendLocalizedResponse(res, 400, 'auth.invalid_credentials', req.userLanguage, {
+        message: 'Password must contain at least 8 characters.'
+      });
+    }
     
     // Check if user already exists
-    const [existingUsers] = await pool.execute('SELECT id FROM users WHERE email = ?', [email]);
+    const [existingUsers] = await pool.execute('SELECT id FROM users WHERE email = ?', [normalizedEmail]);
     
     if (existingUsers.length > 0) {
       return sendLocalizedResponse(res, 400, 'auth.user_already_exists', req.userLanguage);
     }
     
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
     
     // Create user with pending status
     const [result] = await pool.execute(
       'INSERT INTO users (name, email, password, role, approved, pending) VALUES (?, ?, ?, ?, ?, ?)',
-      [name, email, hashedPassword, 'researcher', false, true]
+      [trimmedName, normalizedEmail, hashedPassword, 'researcher', false, true]
     );
     
     const userId = result.insertId;
     
     // Log new registration for admin notification
-    console.log(`New user registration pending approval: ${name} (${email}) - ID: ${userId}`);
+    console.log(`New user registration pending approval: ${trimmedName} (${normalizedEmail}) - ID: ${userId}`);
     
     // Return success without JWT token since user needs approval
     return sendLocalizedResponse(res, 201, 'auth.user_registration_pending', req.userLanguage, {
@@ -263,11 +343,17 @@ app.post('/api/auth/login', async (req, res) => {
     });
     
     const { email, password } = req.body;
+    const normalizedEmail = (email || '').trim().toLowerCase();
+    const rawPassword = password || '';
     
-    console.log('Extracted credentials:', { email, password: password ? '[PRESENT]' : '[MISSING]' });
+    console.log('Extracted credentials:', { email: normalizedEmail, password: rawPassword ? '[PRESENT]' : '[MISSING]' });
+
+    if (!normalizedEmail || !rawPassword) {
+      return sendLocalizedResponse(res, 400, 'error.missing_required_fields', req.userLanguage);
+    }
     
     // Benutzer in Datenbank suchen
-    const [rows] = await pool.execute('SELECT * FROM users WHERE email = ?', [email]);
+    const [rows] = await pool.execute('SELECT * FROM users WHERE email = ?', [normalizedEmail]);
     const user = rows[0];
     
     if (!user) {
@@ -280,7 +366,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
     
     // Passwort überprüfen
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(rawPassword, user.password);
     
     if (!isMatch) {
       return sendLocalizedResponse(res, 400, 'auth.invalid_credentials', req.userLanguage);
@@ -405,13 +491,16 @@ app.post('/api/auth/logout', authenticateToken, async (req, res) => {
 });
 
 // Neue Studie erstellen
-app.post('/api/studies', async (req, res) => {
+app.post('/api/studies', authenticateToken, async (req, res) => {
   try {
     const { name, config } = req.body;
+    if (!name || !String(name).trim()) {
+      return sendLocalizedResponse(res, 400, 'error.missing_required_fields', req.userLanguage);
+    }
     
     const [result] = await pool.execute(
-      'INSERT INTO studies (name, config) VALUES (?, ?)',
-      [name, JSON.stringify(config)]
+      'INSERT INTO studies (name, config, owner_id) VALUES (?, ?, ?)',
+      [name, JSON.stringify(config), req.user.id]
     );
     
     return sendLocalizedResponse(res, 201, 'study.created_success', req.userLanguage, { 
@@ -425,10 +514,16 @@ app.post('/api/studies', async (req, res) => {
   }
 });
 
-// Studien abrufen (ohne Authentifizierung für Kompatibilität)
-app.get('/api/studies', async (req, res) => {
+app.get('/api/studies', authenticateToken, async (req, res) => {
   try {
-    const [rows] = await pool.execute('SELECT id, name, config, created_at, status FROM studies ORDER BY created_at DESC');
+    const [rows] = await pool.execute(
+      `SELECT DISTINCT s.id, s.name, s.config, s.created_at, s.status, s.owner_id
+       FROM studies s
+       LEFT JOIN study_collaborators sc ON sc.study_id = s.id
+       WHERE s.owner_id = ? OR sc.user_id = ?
+       ORDER BY s.created_at DESC`,
+      [req.user.id, req.user.id]
+    );
     
     // Parse config JSON für jede Studie
     const studies = rows.map(row => ({
@@ -442,15 +537,12 @@ app.get('/api/studies', async (req, res) => {
   }
 });
 
-// Einzelne Studie abrufen (ohne Authentifizierung für Kompatibilität)
-app.get('/api/studies/:id', async (req, res) => {
+app.get('/api/studies/:id', authenticateToken, async (req, res) => {
   try {
     const studyId = req.params.id;
+    const row = await getStudyWithAccess(studyId, req.user.id);
     
-    const [rows] = await pool.execute('SELECT * FROM studies WHERE id = ?', [studyId]);
-    const row = rows[0];
-    
-    if (!row) {
+    if (!row || !row.has_access) {
       return sendLocalizedResponse(res, 404, 'study.not_found', req.userLanguage);
     }
     
@@ -468,10 +560,18 @@ app.get('/api/studies/:id', async (req, res) => {
 });
 
 // Studie aktualisieren
-app.put('/api/studies/:id', async (req, res) => {
+app.put('/api/studies/:id', authenticateToken, async (req, res) => {
   try {
     const studyId = req.params.id;
     const { name, config } = req.body;
+
+    const study = await getStudyWithAccess(studyId, req.user.id);
+    if (!study || !study.has_access) {
+      return sendLocalizedResponse(res, 404, 'study.not_found', req.userLanguage);
+    }
+    if (!study.is_owner && req.user.role !== 'admin') {
+      return sendLocalizedResponse(res, 403, 'auth.insufficient_permissions', req.userLanguage);
+    }
     
     const [result] = await pool.execute(
       'UPDATE studies SET name = ?, config = ? WHERE id = ?',
@@ -493,9 +593,17 @@ app.put('/api/studies/:id', async (req, res) => {
 });
 
 // Studie löschen
-app.delete('/api/studies/:id', async (req, res) => {
+app.delete('/api/studies/:id', authenticateToken, async (req, res) => {
   try {
     const studyId = req.params.id;
+
+    const study = await getStudyWithAccess(studyId, req.user.id);
+    if (!study || !study.has_access) {
+      return sendLocalizedResponse(res, 404, 'study.not_found', req.userLanguage);
+    }
+    if (!study.is_owner && req.user.role !== 'admin') {
+      return sendLocalizedResponse(res, 403, 'auth.insufficient_permissions', req.userLanguage);
+    }
     
     const [result] = await pool.execute('DELETE FROM studies WHERE id = ?', [studyId]);
     
@@ -510,9 +618,17 @@ app.delete('/api/studies/:id', async (req, res) => {
 });
 
 // Studie veröffentlichen
-app.post('/api/studies/:id/publish', async (req, res) => {
+app.post('/api/studies/:id/publish', authenticateToken, async (req, res) => {
   try {
     const studyId = req.params.id;
+
+    const study = await getStudyWithAccess(studyId, req.user.id);
+    if (!study || !study.has_access) {
+      return sendLocalizedResponse(res, 404, 'study.not_found', req.userLanguage);
+    }
+    if (!study.is_owner && req.user.role !== 'admin') {
+      return sendLocalizedResponse(res, 403, 'auth.insufficient_permissions', req.userLanguage);
+    }
     
     const [result] = await pool.execute('UPDATE studies SET status = ? WHERE id = ?', ['published', studyId]);
     
@@ -529,9 +645,17 @@ app.post('/api/studies/:id/publish', async (req, res) => {
 });
 
 // Studie zurückziehen
-app.post('/api/studies/:id/unpublish', async (req, res) => {
+app.post('/api/studies/:id/unpublish', authenticateToken, async (req, res) => {
   try {
     const studyId = req.params.id;
+
+    const study = await getStudyWithAccess(studyId, req.user.id);
+    if (!study || !study.has_access) {
+      return sendLocalizedResponse(res, 404, 'study.not_found', req.userLanguage);
+    }
+    if (!study.is_owner && req.user.role !== 'admin') {
+      return sendLocalizedResponse(res, 403, 'auth.insufficient_permissions', req.userLanguage);
+    }
     
     const [result] = await pool.execute('UPDATE studies SET status = ? WHERE id = ?', ['draft', studyId]);
     
@@ -1506,16 +1630,13 @@ app.get('/api/studies/:id/public', async (req, res) => {
   }
 });
 
-// Preview endpoint for study owners (bypasses published check)
-// No authentication required - studyId acts as access token
-app.get('/api/studies/:id/preview', async (req, res) => {
+// Preview endpoint for study owners/collaborators (bypasses published check)
+app.get('/api/studies/:id/preview', authenticateToken, async (req, res) => {
   try {
     const studyId = req.params.id;
+    const row = await getStudyWithAccess(studyId, req.user.id);
     
-    const [rows] = await pool.execute('SELECT * FROM studies WHERE id = ?', [studyId]);
-    const row = rows[0];
-    
-    if (!row) {
+    if (!row || !row.has_access) {
       return sendLocalizedResponse(res, 404, 'study.not_found', req.userLanguage);
     }
     
@@ -1545,22 +1666,9 @@ app.post('/api/studies/:id/preview/verify-access', authenticateToken, async (req
   try {
     const studyId = req.params.id;
     const { accessCode } = req.body;
-    const userId = req.user.id;
-    const userRole = req.user.role;
+    const row = await getStudyWithAccess(studyId, req.user.id);
     
-    let query = 'SELECT config FROM studies WHERE id = ?';
-    let params = [studyId];
-
-    // If not admin, ensure ownership
-    if (userRole !== 'admin') {
-      query += ' AND owner_id = ?';
-      params.push(userId);
-    }
-    
-    const [rows] = await pool.execute(query, params);
-    const row = rows[0];
-    
-    if (!row) {
+    if (!row || !row.has_access) {
       return sendLocalizedResponse(res, 404, 'study.not_found', req.userLanguage);
     }
     
@@ -1577,6 +1685,94 @@ app.post('/api/studies/:id/preview/verify-access', authenticateToken, async (req
     res.json({ valid: isValid });
   } catch (error) {
     return sendLocalizedResponse(res, 500, 'error.database_error', req.userLanguage);
+  }
+});
+
+app.get('/api/studies/:id/collaborators', authenticateToken, async (req, res) => {
+  try {
+    const studyId = req.params.id;
+    const study = await getStudyWithAccess(studyId, req.user.id);
+    if (!study || !study.has_access) {
+      return sendLocalizedResponse(res, 404, 'study.not_found', req.userLanguage);
+    }
+
+    const [rows] = await pool.execute(
+      `SELECT u.id, u.name, u.email
+       FROM study_collaborators sc
+       JOIN users u ON u.id = sc.user_id
+       WHERE sc.study_id = ?
+       ORDER BY u.name ASC`,
+      [studyId]
+    );
+
+    res.json(rows);
+  } catch (error) {
+    console.error('Error loading collaborators:', error);
+    return sendLocalizedResponse(res, 500, 'error.database_error', req.userLanguage);
+  }
+});
+
+app.get('/api/users/collaboration-candidates', authenticateToken, async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT id, name, email
+       FROM users
+       WHERE approved = TRUE AND pending = FALSE AND id <> ?
+       ORDER BY name ASC`,
+      [req.user.id]
+    );
+
+    res.json(rows);
+  } catch (error) {
+    console.error('Error loading collaboration candidates:', error);
+    return sendLocalizedResponse(res, 500, 'error.database_error', req.userLanguage);
+  }
+});
+
+app.put('/api/studies/:id/collaborators', authenticateToken, async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const studyId = req.params.id;
+    const requestedUserIds = Array.isArray(req.body.userIds) ? req.body.userIds : [];
+    const userIds = requestedUserIds
+      .map((id) => Number(id))
+      .filter((id) => Number.isInteger(id) && id > 0 && id !== req.user.id);
+
+    const study = await getStudyWithAccess(studyId, req.user.id);
+    if (!study || !study.has_access) {
+      return sendLocalizedResponse(res, 404, 'study.not_found', req.userLanguage);
+    }
+    if (!study.is_owner && req.user.role !== 'admin') {
+      return sendLocalizedResponse(res, 403, 'auth.insufficient_permissions', req.userLanguage);
+    }
+
+    await connection.beginTransaction();
+    await connection.execute('DELETE FROM study_collaborators WHERE study_id = ?', [studyId]);
+
+    if (userIds.length > 0) {
+      const placeholders = userIds.map(() => '?').join(',');
+      const [existingUsers] = await connection.execute(
+        `SELECT id FROM users WHERE id IN (${placeholders}) AND approved = TRUE AND pending = FALSE`,
+        userIds
+      );
+      const validIds = existingUsers.map((u) => u.id);
+
+      for (const collaboratorId of validIds) {
+        await connection.execute(
+          `INSERT INTO study_collaborators (study_id, user_id, granted_by) VALUES (?, ?, ?)`,
+          [studyId, collaboratorId, req.user.id]
+        );
+      }
+    }
+
+    await connection.commit();
+    return res.json({ success: true });
+  } catch (error) {
+    await connection.rollback();
+    console.error('Error updating collaborators:', error);
+    return sendLocalizedResponse(res, 500, 'error.database_error', req.userLanguage);
+  } finally {
+    connection.release();
   }
 });
 

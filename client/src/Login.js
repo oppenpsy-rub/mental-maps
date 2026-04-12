@@ -8,15 +8,22 @@ function Login() {
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [name, setName] = useState('');
+  const [infoMessage, setInfoMessage] = useState('');
   const { login, register, error } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setInfoMessage('');
     
     if (isRegistering) {
-      await register(name, email, password);
+      const result = await register(name.trim(), email.trim(), password);
+      if (result?.ok && result?.pending) {
+        setInfoMessage(result.message || t('user_registration_pending'));
+        setIsRegistering(false);
+        setPassword('');
+      }
     } else {
-      await login(email, password);
+      await login(email.trim(), password);
     }
   };
 
@@ -58,7 +65,21 @@ function Login() {
           color: '#7a1f1f',
           fontSize: '14px'
         }}>
-          {t('auth_error')}
+          {error}
+        </div>
+      )}
+
+      {infoMessage && (
+        <div style={{
+          padding: '12px 16px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          backgroundColor: '#edf8f1',
+          border: '1px solid #b6dfc2',
+          color: '#1f6b3a',
+          fontSize: '14px'
+        }}>
+          {infoMessage}
         </div>
       )}
       

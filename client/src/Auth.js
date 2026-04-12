@@ -79,19 +79,29 @@ export function AuthProvider({ children }) {
     try {
       setError(null);
       const response = await axios.post('/api/auth/register', { name, email, password });
+
+      // Pending registrations are successful but should not log users in.
+      if (response.data?.pending) {
+        return {
+          ok: true,
+          pending: true,
+          message: response.data?.message || 'Registration successful. Please wait for admin approval.'
+        };
+      }
+
       const { token, user } = response.data;
-      
-      // Token speichern
+      if (!token || !user) {
+        throw new Error('Invalid registration response');
+      }
+
       localStorage.setItem('auth_token', token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      // Benutzer setzen
       setCurrentUser(user);
-      return true;
+      return { ok: true, pending: false };
     } catch (error) {
       console.error('Registration error:', error);
       setError(error.response?.data?.message || 'Registrierung fehlgeschlagen');
-      return false;
+      return { ok: false, pending: false };
     }
   };
 
