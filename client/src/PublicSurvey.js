@@ -1035,12 +1035,26 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
                       key={idx} 
                       className={`choice-option ${(answer || []).includes(option) ? 'selected' : ''}`}
                       onClick={() => {
-                           const currentAnswers = Array.isArray(answer) ? answer : [];
-                           if (currentAnswers.includes(option)) {
-                              setAnswer(currentAnswers.filter(a => a !== option));
-                           } else {
-                              setAnswer([...currentAnswers, option]);
-                           }
+                      const currentAnswers = Array.isArray(answer) ? answer : [];
+                      const exclusiveOptions = Array.isArray(currentQuestion.exclusiveOptions)
+                        ? currentQuestion.exclusiveOptions
+                        : [];
+                      const isExclusiveOption = exclusiveOptions.includes(option);
+
+                      if (currentAnswers.includes(option)) {
+                        setAnswer(currentAnswers.filter(a => a !== option));
+                        return;
+                      }
+
+                      if (isExclusiveOption) {
+                        setAnswer([option]);
+                        return;
+                      }
+
+                      const answersWithoutExclusive = currentAnswers.filter(
+                        (value) => !exclusiveOptions.includes(value)
+                      );
+                      setAnswer([...answersWithoutExclusive, option]);
                        }}
                    >
                       <input 

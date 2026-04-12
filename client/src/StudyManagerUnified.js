@@ -383,13 +383,17 @@ function StudyManagerUnified() {
 
   // Frage aktualisieren
   const updateQuestion = (questionId, field, value) => {
+    updateQuestionFields(questionId, { [field]: value });
+  };
+
+  const updateQuestionFields = (questionId, fields) => {
     setEditingStudy({
       ...editingStudy,
       config: {
         ...editingStudy.config,
         questions: editingStudy.config.questions.map(q => {
           if (q.id === questionId) {
-            return { ...q, [field]: value };
+            return { ...q, ...fields };
           }
           return q;
         })
@@ -2260,15 +2264,32 @@ function StudyManagerUnified() {
                             <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>
                               {t('answer_options')}:
                             </label>
-                            {(question.options || []).map((option, optIndex) => (
+                            {(() => {
+                              const exclusiveOptions = Array.isArray(question.exclusiveOptions)
+                                ? question.exclusiveOptions
+                                : [];
+
+                              return (question.options || []).map((option, optIndex) => (
                               <div key={optIndex} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
                                 <input
                                   type="text"
                                   value={option}
                                   onChange={(e) => {
+                                    const oldOption = option;
+                                    const nextOptionValue = e.target.value;
                                     const newOptions = [...(question.options || [])];
-                                    newOptions[optIndex] = e.target.value;
-                                    updateQuestion(question.id, 'options', newOptions);
+                                    newOptions[optIndex] = nextOptionValue;
+
+                                    const newExclusiveOptions = Array.from(new Set(
+                                      exclusiveOptions
+                                        .map((value) => (value === oldOption ? nextOptionValue : value))
+                                        .filter((value) => !!value && newOptions.includes(value))
+                                    ));
+
+                                    updateQuestionFields(question.id, {
+                                      options: newOptions,
+                                      exclusiveOptions: newExclusiveOptions
+                                    });
                                   }}
                                   placeholder={`${t('option')} ${optIndex + 1}`}
                                   style={{
@@ -2278,10 +2299,30 @@ function StudyManagerUnified() {
                                     borderRadius: '4px'
                                   }}
                                 />
+                                {question.type === 'multiple_choice' && (
+                                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', fontSize: '13px' }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={exclusiveOptions.includes(option)}
+                                      onChange={(e) => {
+                                        const nextExclusiveOptions = e.target.checked
+                                          ? Array.from(new Set([...exclusiveOptions, option]))
+                                          : exclusiveOptions.filter((value) => value !== option);
+                                        updateQuestion(question.id, 'exclusiveOptions', nextExclusiveOptions);
+                                      }}
+                                    />
+                                    {t('exclusive_option') || 'Ausschliesslich'}
+                                  </label>
+                                )}
                                 <button
                                   onClick={() => {
+                                    const optionToDelete = option;
                                     const newOptions = (question.options || []).filter((_, i) => i !== optIndex);
-                                    updateQuestion(question.id, 'options', newOptions);
+                                    const newExclusiveOptions = exclusiveOptions.filter((value) => value !== optionToDelete);
+                                    updateQuestionFields(question.id, {
+                                      options: newOptions,
+                                      exclusiveOptions: newExclusiveOptions
+                                    });
                                   }}
                                   style={{
                                     ...getButtonStyle('danger'),
@@ -2291,7 +2332,13 @@ function StudyManagerUnified() {
                                   {t('delete_option')}
                                 </button>
                               </div>
-                            ))}
+                              ));
+                            })()}
+                            {question.type === 'multiple_choice' && (
+                              <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '10px' }}>
+                                {t('exclusive_option_description') || 'Exklusive Optionen koennen nicht mit anderen Antworten kombiniert werden.'}
+                              </div>
+                            )}
                             <button
                               onClick={() => {
                                 const newOptions = [...(question.options || []), ''];
