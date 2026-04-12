@@ -58,8 +58,20 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files from the React app build directory
-app.use(express.static(path.join(__dirname, '../client/build')));
+// Resolve frontend build directory robustly for different deployment layouts
+const FRONTEND_BUILD_CANDIDATES = [
+  path.join(__dirname, '../client/build'),
+  path.join(__dirname, 'build')
+];
+const FRONTEND_BUILD_DIR = FRONTEND_BUILD_CANDIDATES.find((candidate) => fs.existsSync(candidate));
+
+if (FRONTEND_BUILD_DIR) {
+  app.use(express.static(FRONTEND_BUILD_DIR));
+  console.log(`Serving frontend from: ${FRONTEND_BUILD_DIR}`);
+} else {
+  console.warn('No frontend build directory found. Expected one of:');
+  FRONTEND_BUILD_CANDIDATES.forEach((candidate) => console.warn(` - ${candidate}`));
+}
 
 // Produktions-optimierte Multer-Konfiguration
 const storage = multer.diskStorage({
@@ -796,7 +808,13 @@ app.use((error, req, res, next) => {
 
 // Catch-all handler: send back React's index.html file for client-side routing
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+  if (!FRONTEND_BUILD_DIR) {
+    return res.status(503).json({
+      error: 'Frontend build not found. Run the client build step before starting the server.'
+    });
+  }
+
+  return res.sendFile(path.join(FRONTEND_BUILD_DIR, 'index.html'));
 });
 
 // Graceful shutdown
