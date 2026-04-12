@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import axios from 'axios';
@@ -7,7 +7,7 @@ import { useAuth } from './Auth';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-// Leaflet Icons für React
+// Leaflet Icons fuer React
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -31,6 +31,12 @@ function StudyManagerUnified() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [collaborationCandidates, setCollaborationCandidates] = useState([]);
   const [selectedCollaboratorIds, setSelectedCollaboratorIds] = useState([]);
+  const [activeQuestionId, setActiveQuestionId] = useState(null);
+  const [lastAutoSavedAt, setLastAutoSavedAt] = useState(null);
+  const questionRefs = useRef({});
+  const lastSavedStudySnapshotRef = useRef('');
+  const isSavingStudyRef = useRef(false);
+  const saveStudyChangesRef = useRef(null);
   
   const [newStudy, setNewStudy] = useState({
     name: '',
@@ -54,11 +60,11 @@ function StudyManagerUnified() {
   const [availableLanguages] = useState([
     { code: 'en', name: 'English' },
     { code: 'de', name: 'Deutsch' },
-    { code: 'fr', name: 'Français' },
+    { code: 'fr', name: 'Francais' },
     { code: 'it', name: 'Italiano' },
-    { code: 'es', name: 'Español' },
-    { code: 'pt', name: 'Português' },
-    { code: 'ro', name: 'Română' }
+    { code: 'es', name: 'Espanol' },
+    { code: 'pt', name: 'Portugues' },
+    { code: 'ro', name: 'Romana' }
   ]);
 
   // Studien laden
@@ -86,6 +92,28 @@ function StudyManagerUnified() {
 
     return () => clearTimeout(timeoutId);
   }, [message]);
+
+  useEffect(() => {
+    if (activeTab !== 'edit_questions' || !editingStudy?.config?.questions?.length) {
+      return;
+    }
+
+    const questionIds = editingStudy.config.questions.map((question) => question.id);
+    if (!activeQuestionId || !questionIds.includes(activeQuestionId)) {
+      setActiveQuestionId(questionIds[0]);
+    }
+  }, [activeTab, editingStudy, activeQuestionId]);
+
+  useEffect(() => {
+    if (!editingStudy?.id) {
+      lastSavedStudySnapshotRef.current = '';
+      setLastAutoSavedAt(null);
+      return;
+    }
+
+    lastSavedStudySnapshotRef.current = JSON.stringify(editingStudy);
+    setLastAutoSavedAt(null);
+  }, [editingStudy]);
 
   const loadAudioFiles = async () => {
     try {
@@ -152,7 +180,7 @@ function StudyManagerUnified() {
       const response = await axios.get(`/api/studies/${studyId}`);
       const study = response.data;
       
-      // Ergänze fehlende mapConfig-Standardwerte
+      // Ergaenze fehlende mapConfig-Standardwerte
       if (study.config && study.config.mapConfig) {
         study.config.mapConfig = {
           center: study.config.mapConfig.center || [48.8566, 2.3522],
@@ -162,7 +190,7 @@ function StudyManagerUnified() {
           allowPan: study.config.mapConfig.allowPan !== undefined ? study.config.mapConfig.allowPan : true
         };
       } else {
-        // Erstelle vollständige mapConfig falls sie fehlt
+        // Erstelle vollstaendige mapConfig falls sie fehlt
         study.config = study.config || {};
         study.config.mapConfig = {
           center: [48.8566, 2.3522],
@@ -261,29 +289,91 @@ function StudyManagerUnified() {
     }
   };
 
-  // Studie aktualisieren
-  const updateStudy = async () => {
-    if (!editingStudy.name.trim()) {
-      setMessage(t('study_name_required'));
-      return;
+  const saveStudyChanges = async ({ closeAfterSave = false, silent = false, studyData = editingStudy } = {}) => {
+    if (!studyData?.name?.trim()) {
+      if (!silent) {
+        setMessage(t('study_name_required'));
+      }
+      return false;
     }
 
+    if (isSavingStudyRef.current) {
+      return false;
+    }
+
+    const snapshot = JSON.stringify(studyData);
+    if (snapshot === lastSavedStudySnapshotRef.current) {
+      return true;
+    }
+
+    isSavingStudyRef.current = true;
+
     try {
-      setLoading({...loading, update: true});
-      await axios.put(`/api/studies/${editingStudy.id}`, editingStudy);
-      setMessage(t('study_updated_successfully'));
-      setEditingStudy(null);
-      setActiveTab('studies');
-      loadStudies();
+      setLoading((prev) => ({
+        ...prev,
+        update: !silent,
+        autosave: silent
+      }));
+
+      await axios.put(`/api/studies/${studyData.id}`, studyData);
+      lastSavedStudySnapshotRef.current = snapshot;
+
+      if (silent) {
+        setLastAutoSavedAt(new Date());
+      } else {
+        setMessage(t('study_updated_successfully'));
+      }
+
+      if (closeAfterSave) {
+        setEditingStudy(null);
+        setActiveTab('studies');
+        loadStudies();
+      }
+
+      return true;
     } catch (error) {
       console.error('Fehler beim Aktualisieren der Studie:', error);
       setMessage(t('error_updating_study'));
+      return false;
     } finally {
-      setLoading({...loading, update: false});
+      setLoading((prev) => ({
+        ...prev,
+        update: false,
+        autosave: false
+      }));
+      isSavingStudyRef.current = false;
     }
   };
 
-  // Studie löschen
+  // Studie aktualisieren
+  const updateStudy = async () => {
+    await saveStudyChanges({ closeAfterSave: true, silent: false, studyData: editingStudy });
+  };
+
+  saveStudyChangesRef.current = saveStudyChanges;
+
+  useEffect(() => {
+    if (!editingStudy?.id) {
+      return;
+    }
+
+    if (!activeTab.startsWith('edit_') || activeTab === 'edit_sharing') {
+      return;
+    }
+
+    const currentSnapshot = JSON.stringify(editingStudy);
+    if (currentSnapshot === lastSavedStudySnapshotRef.current) {
+      return;
+    }
+
+    const debounceId = setTimeout(() => {
+      saveStudyChangesRef.current?.({ closeAfterSave: false, silent: true, studyData: editingStudy });
+    }, 1200);
+
+    return () => clearTimeout(debounceId);
+  }, [editingStudy, activeTab]);
+
+  // Studie loeschen
   const deleteStudy = async (studyId) => {
     if (!window.confirm(t('confirm_delete_study'))) {
       return;
@@ -302,7 +392,7 @@ function StudyManagerUnified() {
     }
   };
 
-  // Studie veröffentlichen
+  // Studie veroeffentlichen
   const publishStudy = async (studyId) => {
     try {
       setLoading({...loading, [`publish_${studyId}`]: true});
@@ -317,7 +407,7 @@ function StudyManagerUnified() {
     }
   };
 
-  // Studie zurückziehen
+  // Studie zurueckziehen
   const unpublishStudy = async (studyId) => {
     try {
       setLoading({...loading, [`unpublish_${studyId}`]: true});
@@ -347,7 +437,7 @@ function StudyManagerUnified() {
     }
   };
 
-  // Frage zur Studie hinzufügen
+  // Frage zur Studie hinzufuegen
   const addQuestion = () => {
     const newQuestion = {
       id: `question_${Date.now()}`,
@@ -358,7 +448,7 @@ function StudyManagerUnified() {
       required: true,
       allowZoom: editingStudy.config.mapConfig.allowZoom,
       allowPan: editingStudy.config.mapConfig.allowPan,
-      audioFile: null // Für audio_perception Fragen
+      audioFile: null // Fuer audio_perception Fragen
     };
     
     setEditingStudy({
@@ -370,7 +460,7 @@ function StudyManagerUnified() {
     });
   };
 
-  // Frage löschen
+  // Frage loeschen
   const deleteQuestion = (questionId) => {
     setEditingStudy({
       ...editingStudy,
@@ -399,6 +489,48 @@ function StudyManagerUnified() {
         })
       }
     });
+  };
+
+  const scrollToQuestion = (questionId) => {
+    if (!questionId) {
+      return;
+    }
+
+    setActiveQuestionId(questionId);
+
+    const target = questionRefs.current[questionId];
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const getQuestionTypeLabel = (questionType) => {
+    switch (questionType) {
+      case 'map_drawing':
+        return t('polygon_drawing');
+      case 'point_marking':
+        return t('point_marking');
+      case 'text_input':
+        return t('text_input');
+      case 'numeric_input':
+        return t('numeric_input') || 'Numerische Eingabe';
+      case 'single_choice':
+        return t('single_choice');
+      case 'multiple_choice':
+        return t('multiple_choice');
+      case 'likert':
+        return t('likert_scale') || 'Likert Skala';
+      case 'slider':
+        return t('slider') || 'Schieberegler';
+      case 'date':
+        return t('date') || 'Datum';
+      case 'instruction':
+        return t('instruction_text');
+      case 'audio_perception':
+        return t('audio_perception');
+      default:
+        return questionType || t('question_type');
+    }
   };
 
   const FILTER_CHOICE_TYPES = ['single_choice', 'multiple_choice', 'likert'];
@@ -551,7 +683,7 @@ function StudyManagerUnified() {
     });
   };
 
-  // Interaktive Karten-Komponente für die Konfiguration
+  // Interaktive Karten-Komponente fuer die Konfiguration
   const MapConfigSelector = () => {
     console.log('MapConfigSelector rendering...', editingStudy?.config?.mapConfig);
     
@@ -637,7 +769,7 @@ function StudyManagerUnified() {
         case 'topographic':
           return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
         default:
-          // Verwende direkten OSM-Server für bessere Kompatibilität
+          // Verwende direkten OSM-Server fuer bessere Kompatibilitaet
           return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
       }
     };
@@ -692,7 +824,7 @@ function StudyManagerUnified() {
     );
   };
 
-  // Hilfsfunktion für Button-Styling
+  // Hilfsfunktion fuer Button-Styling
   const getButtonStyle = (variant = 'primary', disabled = false) => {
     const baseStyle = {
       padding: '8px 16px',
@@ -770,7 +902,7 @@ function StudyManagerUnified() {
               onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
               onMouseOut={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
             >
-              ☰
+              Menu
             </button>
           </div>
         </div>
@@ -994,7 +1126,7 @@ function StudyManagerUnified() {
             onClick={() => setMessage('')}
             style={{ marginLeft: 'auto', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}
           >
-            ×
+            x
           </button>
         </div>
       )}
@@ -1375,7 +1507,7 @@ function StudyManagerUnified() {
         </div>
       )}
 
-      {/* Veröffentlichte Studien Tab */}
+      {/* Veroeffentlichte Studien Tab */}
       {activeTab === 'published' && (
         <div style={{ 
           backgroundColor: 'white',
@@ -1718,18 +1850,27 @@ function StudyManagerUnified() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
             <h2 style={{ margin: 0, color: '#333' }}>{t('edit_study')}: {editingStudy.name}</h2>
-            <button
-              onClick={() => {
-                setEditingStudy(null);
-                setActiveTab('studies');
-              }}
-              style={getButtonStyle('secondary')}
-            >
-              {t('close')}
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '12px', color: '#6c757d' }}>
+                {loading.autosave
+                  ? (t('autosaving') || 'Autosave...')
+                  : (lastAutoSavedAt
+                    ? `${t('autosaved') || 'Autosaved'} ${lastAutoSavedAt.toLocaleTimeString()}`
+                    : (t('autosave_enabled') || 'Autosave aktiv'))}
+              </span>
+              <button
+                onClick={() => {
+                  setEditingStudy(null);
+                  setActiveTab('studies');
+                }}
+                style={getButtonStyle('secondary')}
+              >
+                {t('close')}
+              </button>
+            </div>
           </div>
           
-          {/* Tabs für die verschiedenen Bearbeitungsbereiche */}
+          {/* Tabs fuer die verschiedenen Bearbeitungsbereiche */}
           <div style={{ 
             display: 'flex', 
             borderBottom: '2px solid #dee2e6',
@@ -1831,7 +1972,7 @@ function StudyManagerUnified() {
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
                   <input
                     type="checkbox"
-                    checked={editingStudy.config.consentEnabled !== false} // Standardmäßig true
+                    checked={editingStudy.config.consentEnabled !== false} // Standardmaessig true
                     onChange={(e) => setEditingStudy({
                       ...editingStudy,
                       config: {
@@ -2103,13 +2244,38 @@ function StudyManagerUnified() {
           {/* Fragen verwalten */}
           {activeTab === 'edit_questions' && (
             <div style={{ marginBottom: '30px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h3 style={{ color: '#495057', margin: 0 }}>{t('manage_questions')}</h3>
+              <div style={{
+                position: 'sticky',
+                top: '130px',
+                zIndex: 10,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '20px',
+                padding: '12px 14px',
+                backgroundColor: 'rgba(248, 249, 250, 0.95)',
+                border: '1px solid #dee2e6',
+                borderRadius: '10px',
+                backdropFilter: 'blur(8px)'
+              }}>
+                <div>
+                  <h3 style={{ color: '#495057', margin: 0 }}>{t('manage_questions')}</h3>
+                  <div style={{ fontSize: '12px', color: '#6c757d', marginTop: '4px' }}>
+                    {editingStudy.config.questions.length} {t('questions_count') || 'Fragen'}
+                  </div>
+                </div>
                 <button
                   onClick={addQuestion}
                   style={getButtonStyle('success')}
                 >
                   {t('add_new_question')}
+                </button>
+                <button
+                  onClick={() => scrollToQuestion(editingStudy.config.questions[editingStudy.config.questions.length - 1]?.id)}
+                  disabled={editingStudy.config.questions.length === 0}
+                  style={getButtonStyle('outline', editingStudy.config.questions.length === 0)}
+                >
+                  {t('go_to_last_question') || 'Zur letzten Frage'}
                 </button>
               </div>
               
@@ -2127,13 +2293,68 @@ function StudyManagerUnified() {
                   <p>{t('add_new_question_to_begin')}</p>
                 </div>
               ) : (
-                <div style={{ display: 'grid', gap: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', alignItems: 'start' }}>
+                  <aside style={{
+                    position: 'sticky',
+                    top: '205px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '10px',
+                    padding: '14px',
+                    maxHeight: 'calc(100vh - 230px)',
+                    overflowY: 'auto'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <strong style={{ color: '#495057' }}>{t('question_overview') || 'Fragenuebersicht'}</strong>
+                      <span style={{ fontSize: '12px', color: '#6c757d' }}>{editingStudy.config.questions.length}</span>
+                    </div>
+
+                    <div style={{ display: 'grid', gap: '8px' }}>
+                      {editingStudy.config.questions.map((question, index) => (
+                        <button
+                          key={`overview-${question.id}`}
+                          type="button"
+                          onClick={() => scrollToQuestion(question.id)}
+                          style={{
+                            textAlign: 'left',
+                            border: activeQuestionId === question.id ? '1px solid #4f86f7' : '1px solid #e9ecef',
+                            backgroundColor: activeQuestionId === question.id ? '#eaf2ff' : '#f8f9fa',
+                            borderRadius: '8px',
+                            padding: '9px 10px',
+                            cursor: 'pointer',
+                            boxShadow: activeQuestionId === question.id ? '0 0 0 1px rgba(79, 134, 247, 0.15)' : 'none'
+                          }}
+                        >
+                          <div style={{ fontSize: '11px', color: '#6c757d', marginBottom: '3px' }}>
+                            {t('question')} {index + 1}
+                          </div>
+                          <div style={{ fontWeight: '600', color: '#495057', lineHeight: 1.3, marginBottom: '4px' }}>
+                            {question.text || t('new_question')}
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#6c757d' }}>
+                            {getQuestionTypeLabel(question.type)}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </aside>
+
+                  <div style={{ display: 'grid', gap: '20px', minWidth: 0 }}>
                   {editingStudy.config.questions.map((question, index) => (
-                    <div key={question.id} style={{
+                    <div
+                      key={question.id}
+                      ref={(element) => {
+                        if (element) {
+                          questionRefs.current[question.id] = element;
+                        }
+                      }}
+                      onMouseEnter={() => setActiveQuestionId(question.id)}
+                      style={{
                       border: '1px solid #dee2e6',
                       padding: '20px',
                       borderRadius: '10px',
-                      backgroundColor: '#f8f9fa'
+                      backgroundColor: '#f8f9fa',
+                      scrollMarginTop: '220px'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '15px' }}>
                         <h4 style={{ margin: 0, color: '#495057' }}>{t('question')} {index + 1}</h4>
@@ -2237,7 +2458,7 @@ function StudyManagerUnified() {
                         {['text_input', 'numeric_input'].includes(question.type) && (
                           <div>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                              {t('max_length') || 'Maximale Zeichenlänge'}:
+                              {t('max_length') || 'Maximale Zeichenlaenge'}:
                             </label>
                             <input
                               type="number"
@@ -2253,7 +2474,7 @@ function StudyManagerUnified() {
                               }}
                             />
                             <small style={{ color: '#6c757d', display: 'block', marginTop: '5px' }}>
-                              {t('leave_empty_for_no_limit') || 'Leer lassen für keine Begrenzung'}
+                              {t('leave_empty_for_no_limit') || 'Leer lassen fuer keine Begrenzung'}
                             </small>
                           </div>
                         )}
@@ -2423,7 +2644,7 @@ function StudyManagerUnified() {
                           </div>
                         )}
                         
-                        {/* Audio-Upload für alle Fragen (optional) */}
+                        {/* Audio-Upload fuer alle Fragen (optional) */}
                         <div>
                           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                             {t('audio_file_optional')}:
@@ -2711,7 +2932,7 @@ function StudyManagerUnified() {
                           </div>
                         )}
 
-                        {/* Allgemeine Einstellungen für alle Fragentypen */}
+                        {/* Allgemeine Einstellungen fuer alle Fragentypen */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px', paddingTop: '10px' }}>
                           <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <input
@@ -2725,6 +2946,7 @@ function StudyManagerUnified() {
                       </div>
                     </div>
                   ))}
+                  </div>
                 </div>
               )}
             </div>
