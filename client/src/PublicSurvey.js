@@ -70,19 +70,114 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
   const [surveyCompleted, setSurveyCompleted] = useState(false);
   const [completionParticipantCode, setCompletionParticipantCode] = useState('');
 
-  // Helper function to check if a question should be shown based on filters
-  const shouldShowQuestion = (question, responses = allResponses) => {
-    if (!question.filter || !question.filter.questionId) return true;
-    
-    const previousAnswer = responses[question.filter.questionId];
-    // If the dependency question hasn't been answered (or was skipped), hide this one
-    if (!previousAnswer) return false;
-    
-    if (Array.isArray(previousAnswer)) {
-      return previousAnswer.includes(question.filter.requiredAnswer);
+  const toNumber = (value) => {
+    if (value === null || value === undefined || value === '') {
+      return null;
     }
 
-    return previousAnswer === question.filter.requiredAnswer;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
+  const normalizeQuestionFilter = (question) => {
+    if (!question?.filter) {
+      return { logic: 'all', conditions: [] };
+    }
+
+    if (Array.isArray(question.filter.conditions)) {
+      return {
+        logic: question.filter.logic === 'any' ? 'any' : 'all',
+        conditions: question.filter.conditions
+          .filter((condition) => !!condition?.questionId)
+          .map((condition) => ({
+            questionId: condition.questionId,
+            kind: condition.kind === 'numeric' ? 'numeric' : 'choice',
+            allowedAnswers: Array.isArray(condition.allowedAnswers) ? condition.allowedAnswers : [],
+            minValue: condition.minValue ?? '',
+            maxValue: condition.maxValue ?? ''
+          }))
+      };
+    }
+
+    // Legacy single-filter support.
+    if (question.filter.questionId) {
+      return {
+        logic: 'all',
+        conditions: [{
+          questionId: question.filter.questionId,
+          kind: 'choice',
+          allowedAnswers: question.filter.requiredAnswer ? [question.filter.requiredAnswer] : [],
+          minValue: '',
+          maxValue: ''
+        }]
+      };
+    }
+
+    return { logic: 'all', conditions: [] };
+  };
+
+  const evaluateFilterCondition = (condition, responses = allResponses) => {
+    if (!condition?.questionId) {
+      return false;
+    }
+
+    const previousAnswer = responses[condition.questionId];
+    if (previousAnswer === undefined || previousAnswer === null || previousAnswer === '') {
+      return false;
+    }
+
+    if (condition.kind === 'numeric') {
+      const numericAnswer = toNumber(previousAnswer);
+      if (numericAnswer === null) {
+        return false;
+      }
+
+      const minValue = toNumber(condition.minValue);
+      const maxValue = toNumber(condition.maxValue);
+
+      if (minValue !== null && numericAnswer < minValue) {
+        return false;
+      }
+
+      if (maxValue !== null && numericAnswer > maxValue) {
+        return false;
+      }
+
+      return true;
+    }
+
+    const allowedAnswers = Array.isArray(condition.allowedAnswers)
+      ? condition.allowedAnswers.map((value) => String(value))
+      : [];
+
+    if (allowedAnswers.length === 0) {
+      return false;
+    }
+
+    if (Array.isArray(previousAnswer)) {
+      return previousAnswer.some((value) => allowedAnswers.includes(String(value)));
+    }
+
+    return allowedAnswers.includes(String(previousAnswer));
+  };
+
+  // Helper function to check if a question should be shown based on filters
+  const shouldShowQuestion = (question, responses = allResponses) => {
+    const normalizedFilter = normalizeQuestionFilter(question);
+
+    if (normalizedFilter.conditions.length === 0) {
+      return true;
+    }
+
+    const conditionResults = normalizedFilter.conditions.map((condition) => {
+      return evaluateFilterCondition(condition, responses);
+    });
+
+    if (normalizedFilter.logic === 'any') {
+      return conditionResults.some(Boolean);
+    }
+
+    return conditionResults.every(Boolean);
   };
 
   // Effect für Sprachänderungen

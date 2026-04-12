@@ -397,6 +397,114 @@ function StudyManagerUnified() {
     });
   };
 
+  const FILTER_CHOICE_TYPES = ['single_choice', 'multiple_choice', 'likert'];
+  const FILTER_NUMERIC_TYPES = ['slider', 'numeric_input'];
+
+  const isFilterableQuestionType = (type) => {
+    return FILTER_CHOICE_TYPES.includes(type) || FILTER_NUMERIC_TYPES.includes(type);
+  };
+
+  const getConditionKindForType = (type) => {
+    return FILTER_NUMERIC_TYPES.includes(type) ? 'numeric' : 'choice';
+  };
+
+  const normalizeQuestionFilter = (question) => {
+    if (!question?.filter) {
+      return { logic: 'all', conditions: [] };
+    }
+
+    if (Array.isArray(question.filter.conditions)) {
+      return {
+        logic: question.filter.logic === 'any' ? 'any' : 'all',
+        conditions: question.filter.conditions
+          .filter((condition) => !!condition?.questionId)
+          .map((condition) => ({
+            questionId: condition.questionId,
+            kind: condition.kind === 'numeric' ? 'numeric' : 'choice',
+            allowedAnswers: Array.isArray(condition.allowedAnswers) ? condition.allowedAnswers : [],
+            minValue: condition.minValue ?? '',
+            maxValue: condition.maxValue ?? ''
+          }))
+      };
+    }
+
+    // Legacy single-condition filter support.
+    if (question.filter.questionId) {
+      return {
+        logic: 'all',
+        conditions: [{
+          questionId: question.filter.questionId,
+          kind: 'choice',
+          allowedAnswers: question.filter.requiredAnswer ? [question.filter.requiredAnswer] : [],
+          minValue: '',
+          maxValue: ''
+        }]
+      };
+    }
+
+    return { logic: 'all', conditions: [] };
+  };
+
+  const getPreviousFilterableQuestions = (questionIndex) => {
+    return (editingStudy?.config?.questions || [])
+      .slice(0, questionIndex)
+      .filter((question) => isFilterableQuestionType(question.type));
+  };
+
+  const getQuestionById = (questionId) => {
+    return (editingStudy?.config?.questions || []).find((question) => question.id === questionId);
+  };
+
+  const updateQuestionFilter = (questionId, nextFilter) => {
+    const normalizedFilter = {
+      logic: nextFilter.logic === 'any' ? 'any' : 'all',
+      conditions: (nextFilter.conditions || []).filter((condition) => !!condition.questionId)
+    };
+
+    updateQuestion(questionId, 'filter', normalizedFilter.conditions.length > 0 ? normalizedFilter : null);
+  };
+
+  const addFilterCondition = (question, questionIndex) => {
+    const previousQuestions = getPreviousFilterableQuestions(questionIndex);
+    if (previousQuestions.length === 0) {
+      return;
+    }
+
+    const referenceQuestion = previousQuestions[0];
+    const kind = getConditionKindForType(referenceQuestion.type);
+    const newCondition = kind === 'numeric'
+      ? { questionId: referenceQuestion.id, kind, minValue: '', maxValue: '' }
+      : { questionId: referenceQuestion.id, kind, allowedAnswers: [] };
+
+    const currentFilter = normalizeQuestionFilter(question);
+    updateQuestionFilter(question.id, {
+      ...currentFilter,
+      conditions: [...currentFilter.conditions, newCondition]
+    });
+  };
+
+  const updateFilterCondition = (question, conditionIndex, nextCondition) => {
+    const currentFilter = normalizeQuestionFilter(question);
+    const updatedConditions = currentFilter.conditions.map((condition, index) => {
+      return index === conditionIndex ? nextCondition : condition;
+    });
+
+    updateQuestionFilter(question.id, {
+      ...currentFilter,
+      conditions: updatedConditions
+    });
+  };
+
+  const removeFilterCondition = (question, conditionIndex) => {
+    const currentFilter = normalizeQuestionFilter(question);
+    const updatedConditions = currentFilter.conditions.filter((_, index) => index !== conditionIndex);
+
+    updateQuestionFilter(question.id, {
+      ...currentFilter,
+      conditions: updatedConditions
+    });
+  };
+
   // Frage nach oben verschieben
   const moveQuestionUp = (index) => {
     if (index === 0) return;
@@ -2384,51 +2492,175 @@ function StudyManagerUnified() {
                             <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold', color: '#495057' }}>
                               {t('logic_filter') || 'Bedingte Anzeige (Filter)'}:
                             </label>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                              <div>
-                                <label style={{ display: 'block', fontSize: '12px', marginBottom: '5px' }}>
-                                  {t('show_only_if_question') || 'Nur anzeigen, wenn Frage...'}:
-                                </label>
-                                <select
-                                  value={question.filter?.questionId || ''}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    updateQuestion(question.id, 'filter', val ? { ...question.filter, questionId: val } : null);
-                                  }}
-                                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da' }}
-                                >
-                                  <option value="">{t('always_show') || 'Immer anzeigen'}</option>
-                                  {editingStudy.config.questions
-                                    .slice(0, index) // Only previous questions
-                                    .filter(q => ['single_choice', 'multiple_choice', 'likert'].includes(q.type))
-                                    .map(q => (
-                                      <option key={q.id} value={q.id}>
-                                        {q.text?.substring(0, 50) + (q.text?.length > 50 ? '...' : '')}
-                                      </option>
-                                    ))}
-                                </select>
-                              </div>
-                              
-                              {question.filter?.questionId && (
-                                <div>
-                                  <label style={{ display: 'block', fontSize: '12px', marginBottom: '5px' }}>
-                                    {t('is_answered_with') || 'beantwortet wurde mit...'}:
-                                  </label>
-                                  <select
-                                    value={question.filter?.requiredAnswer || ''}
-                                    onChange={(e) => updateQuestion(question.id, 'filter', { ...question.filter, requiredAnswer: e.target.value })}
-                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da' }}
-                                  >
-                                    <option value="">{t('select_answer') || 'Antwort wählen...'}</option>
-                                    {editingStudy.config.questions
-                                      .find(q => q.id === question.filter.questionId)
-                                      ?.options?.map((opt, i) => (
-                                        <option key={i} value={opt}>{opt}</option>
-                                      ))}
-                                  </select>
+                            {(() => {
+                              const previousQuestions = getPreviousFilterableQuestions(index);
+                              const normalizedFilter = normalizeQuestionFilter(question);
+
+                              if (previousQuestions.length === 0) {
+                                return (
+                                  <div style={{ fontSize: '13px', color: '#6c757d' }}>
+                                    {t('no_previous_filter_questions') || 'Keine vorherige Frage fuer Bedingungen verfuegbar.'}
+                                  </div>
+                                );
+                              }
+
+                              return (
+                                <div style={{ display: 'grid', gap: '12px' }}>
+                                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                    <label style={{ fontSize: '12px', margin: 0 }}>
+                                      {t('filter_logic') || 'Bedingungen verknuepfen mit'}:
+                                    </label>
+                                    <select
+                                      value={normalizedFilter.logic}
+                                      onChange={(e) => {
+                                        updateQuestionFilter(question.id, {
+                                          ...normalizedFilter,
+                                          logic: e.target.value === 'any' ? 'any' : 'all'
+                                        });
+                                      }}
+                                      style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', minWidth: '180px' }}
+                                    >
+                                      <option value="all">{t('filter_match_all') || 'UND (alle Bedingungen)'} </option>
+                                      <option value="any">{t('filter_match_any') || 'ODER (mindestens eine Bedingung)'}</option>
+                                    </select>
+                                    <button
+                                      type="button"
+                                      onClick={() => addFilterCondition(question, index)}
+                                      style={getButtonStyle('outline')}
+                                    >
+                                      {t('add_condition') || 'Bedingung hinzufuegen'}
+                                    </button>
+                                  </div>
+
+                                  {normalizedFilter.conditions.length === 0 && (
+                                    <div style={{ fontSize: '13px', color: '#6c757d' }}>
+                                      {t('always_show') || 'Immer anzeigen'}
+                                    </div>
+                                  )}
+
+                                  {normalizedFilter.conditions.map((condition, conditionIndex) => {
+                                    const referenceQuestion = getQuestionById(condition.questionId);
+                                    const conditionKind = condition.kind || getConditionKindForType(referenceQuestion?.type);
+                                    const answerOptions = referenceQuestion?.options || [];
+
+                                    return (
+                                      <div
+                                        key={`filter-${conditionIndex}`}
+                                        style={{
+                                          display: 'grid',
+                                          gap: '10px',
+                                          padding: '12px',
+                                          border: '1px solid #ced4da',
+                                          borderRadius: '6px',
+                                          backgroundColor: '#f8fafc'
+                                        }}
+                                      >
+                                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                          <label style={{ fontSize: '12px', margin: 0 }}>
+                                            {t('show_only_if_question') || 'Nur anzeigen, wenn Frage...'}:
+                                          </label>
+                                          <select
+                                            value={condition.questionId}
+                                            onChange={(e) => {
+                                              const nextQuestionId = e.target.value;
+                                              const nextQuestion = getQuestionById(nextQuestionId);
+                                              const nextKind = getConditionKindForType(nextQuestion?.type);
+                                              const nextCondition = nextKind === 'numeric'
+                                                ? { questionId: nextQuestionId, kind: nextKind, minValue: '', maxValue: '' }
+                                                : { questionId: nextQuestionId, kind: nextKind, allowedAnswers: [] };
+                                              updateFilterCondition(question, conditionIndex, nextCondition);
+                                            }}
+                                            style={{ flex: 1, minWidth: '220px', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da' }}
+                                          >
+                                            {previousQuestions.map((previousQuestion) => (
+                                              <option key={previousQuestion.id} value={previousQuestion.id}>
+                                                {previousQuestion.text?.substring(0, 70) + (previousQuestion.text?.length > 70 ? '...' : '')}
+                                              </option>
+                                            ))}
+                                          </select>
+                                          <button
+                                            type="button"
+                                            onClick={() => removeFilterCondition(question, conditionIndex)}
+                                            style={getButtonStyle('danger')}
+                                          >
+                                            {t('delete')}
+                                          </button>
+                                        </div>
+
+                                        {conditionKind === 'numeric' ? (
+                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                            <div>
+                                              <label style={{ display: 'block', fontSize: '12px', marginBottom: '5px' }}>
+                                                {t('minimum_value') || 'Mindestwert'}
+                                              </label>
+                                              <input
+                                                type="number"
+                                                value={condition.minValue ?? ''}
+                                                onChange={(e) => {
+                                                  updateFilterCondition(question, conditionIndex, {
+                                                    ...condition,
+                                                    kind: 'numeric',
+                                                    minValue: e.target.value
+                                                  });
+                                                }}
+                                                placeholder={t('no_limit') || 'Keine Begrenzung'}
+                                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da' }}
+                                              />
+                                            </div>
+                                            <div>
+                                              <label style={{ display: 'block', fontSize: '12px', marginBottom: '5px' }}>
+                                                {t('maximum_value') || 'Hoechstwert'}
+                                              </label>
+                                              <input
+                                                type="number"
+                                                value={condition.maxValue ?? ''}
+                                                onChange={(e) => {
+                                                  updateFilterCondition(question, conditionIndex, {
+                                                    ...condition,
+                                                    kind: 'numeric',
+                                                    maxValue: e.target.value
+                                                  });
+                                                }}
+                                                placeholder={t('no_limit') || 'Keine Begrenzung'}
+                                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da' }}
+                                              />
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <div>
+                                            <label style={{ display: 'block', fontSize: '12px', marginBottom: '5px' }}>
+                                              {t('is_answered_with') || 'beantwortet wurde mit...'}
+                                            </label>
+                                            <select
+                                              multiple
+                                              value={Array.isArray(condition.allowedAnswers) ? condition.allowedAnswers : []}
+                                              onChange={(e) => {
+                                                const selectedValues = Array.from(e.target.selectedOptions).map((option) => option.value);
+                                                updateFilterCondition(question, conditionIndex, {
+                                                  ...condition,
+                                                  kind: 'choice',
+                                                  allowedAnswers: selectedValues
+                                                });
+                                              }}
+                                              style={{ width: '100%', minHeight: '110px', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da' }}
+                                            >
+                                              {answerOptions.map((option, optionIndex) => (
+                                                <option key={`${condition.questionId}_${optionIndex}`} value={option}>
+                                                  {option}
+                                                </option>
+                                              ))}
+                                            </select>
+                                            <div style={{ fontSize: '11px', color: '#6c757d', marginTop: '4px' }}>
+                                              {t('multi_select_hint') || 'Mehrfachauswahl moeglich (Strg/Cmd + Klick).'}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
                                 </div>
-                              )}
-                            </div>
+                              );
+                            })()}
                           </div>
                         )}
 
