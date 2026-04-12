@@ -48,7 +48,12 @@ const MentalMapAnalysis = () => {
   const featureCount = data.features.length;
 
   return (
-    <div className="analysis-container">
+    <div className="analysis-container" style={{ 
+      display: 'flex', 
+      flexDirection: 'column',
+      height: 'auto',
+      minHeight: 'calc(100vh - 250px)'
+    }}>
       <div className="analysis-header">
         <div>
             <h2 className="analysis-title">VOICE Mental Maps Analysis</h2>

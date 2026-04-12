@@ -331,3 +331,29 @@
 .p-clamp-lg {
   padding: clamp(24px, 5vw, 40px);
 }
+/* Header and Navigation Display Rules */
+.mobile-header-display {
+  display: block;
+}
+
+.desktop-header-display {
+  display: none;
+}
+
+.desktop-nav-display {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mobile-header-display {
+    display: none;
+  }
+
+  .desktop-header-display {
+    display: block;
+  }
+
+  .desktop-nav-display {
+    display: block;
+  }
+}

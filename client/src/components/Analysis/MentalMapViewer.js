@@ -9,7 +9,6 @@ const MentalMapViewer = ({ mentalMaps, participantCode, questionLabels = {} }) =
     const containerRef = useRef(null);
     const [selectedQuestion, setSelectedQuestion] = useState('all');
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [debugInfo, setDebugInfo] = useState('');
 
     // Colors for different questions
     const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#84cc16'];
@@ -92,7 +91,7 @@ const MentalMapViewer = ({ mentalMaps, participantCode, questionLabels = {} }) =
             }).addTo(mapRef.current);
             
             // Force invalidate size repeatedly
-            const timers = [100, 500, 1000].map(t => 
+            [100, 500, 1000].forEach(t => 
               setTimeout(() => mapRef.current?.invalidateSize(), t)
             );
         }
@@ -242,48 +241,70 @@ const MentalMapViewer = ({ mentalMaps, participantCode, questionLabels = {} }) =
     }
 
     return (
-      <div className={isFullscreen ? "viewer-fullscreen" : "viewer-card"}>
-        <div className="d-flex align-center justify-between mb-3 flex-wrap gap-3">
-            <div className="d-flex align-center gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg">
+      <div style={{ display: 'flex', height: '100%', width: '100%', gap: '0px', backgroundColor: '#fff' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <div style={{
+                padding: '12px 16px',
+                backgroundColor: '#f9fafb',
+                borderBottom: '1px solid #e5e7eb',
+                display: 'flex',
+                gap: '12px',
+                alignItems: 'center',
+                flexWrap: 'wrap'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <MapIcon size={20} color="#3b82f6" />
+                    <span style={{ fontWeight: '600', color: '#1f2937' }}>Map Viewer</span>
                 </div>
-                <div>
-                    <h3 className="m-0 fw-bold">VOICE Mental Maps</h3>
-                    <p className="m-0 text-sm text-gray-500">
-                        {mentalMaps.length} Karte{mentalMaps.length !== 1 ? 'n' : ''} {participantCode ? `für ${participantCode}` : 'gesamt'}
-                    </p>
-                </div>
-            </div>
 
-            <div className="d-flex align-center gap-2">
-                 <button
-                    onClick={() => setIsFullscreen(!isFullscreen)}
-                    className="btn-icon btn-hover"
-                    title={isFullscreen ? "Vollbild verlassen" : "Vollbild"}
-                >
-                    {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-                </button>
-                
-                <div className="d-flex border rounded-md overflow-hidden">
+                {/* Export Buttons */}
+                <div style={{ display: 'flex', gap: '0px', border: '1px solid #e5e7eb', borderRadius: '6px', overflow: 'hidden' }}>
                     <button
                         onClick={exportViewerPngWithBasemap}
-                        className="btn-export btn-hover"
+                        style={{
+                            padding: '6px 10px',
+                            color: '#6b7280',
+                            backgroundColor: '#fff',
+                            border: 'none',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                        }}
                         title="Als PNG exportieren"
                     >
-                        <Download size={16} />
-                        PNG
+                        <Download size={14} /> PNG
                     </button>
                     <button
                         onClick={exportViewerJpgWithBasemap}
-                        className="btn-export btn-hover"
+                        style={{
+                            padding: '6px 10px',
+                            color: '#6b7280',
+                            backgroundColor: '#fff',
+                            border: 'none',
+                            borderLeft: '1px solid #e5e7eb',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
                         title="Als JPG exportieren"
                     >
                         JPG
                     </button>
                     <button
                         onClick={exportViewerSvgWithBasemap}
-                        className="btn-export btn-hover"
+                        style={{
+                            padding: '6px 10px',
+                            color: '#6b7280',
+                            backgroundColor: '#fff',
+                            border: 'none',
+                            borderLeft: '1px solid #e5e7eb',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
                         title="Als SVG exportieren"
                     >
                         SVG
@@ -293,7 +314,14 @@ const MentalMapViewer = ({ mentalMaps, participantCode, questionLabels = {} }) =
                 <select 
                     value={selectedQuestion} 
                     onChange={(e) => setSelectedQuestion(e.target.value)}
-                    className="select-input"
+                    style={{
+                        padding: '6px 12px',
+                        fontSize: '13px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        backgroundColor: '#fff',
+                        cursor: 'pointer'
+                    }}
                 >
                     <option value="all">Alle Fragen ({mentalMaps.length})</option>
                     {uniqueQuestions.map(qId => (
@@ -302,43 +330,93 @@ const MentalMapViewer = ({ mentalMaps, participantCode, questionLabels = {} }) =
                         </option>
                     ))}
                 </select>
+
+                {/* Fullscreen Button */}
+                <button
+                    onClick={() => setIsFullscreen(!isFullscreen)}
+                    style={{
+                        padding: '6px 12px',
+                        color: '#6b7280',
+                        backgroundColor: '#fff',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        marginLeft: 'auto'
+                    }}
+                >
+                    {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                </button>
+            </div>
+
+            <div 
+                ref={containerRef} 
+                style={{
+                    flex: 1,
+                    position: 'relative',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '0px',
+                    overflow: 'hidden',
+                    minHeight: 0
+                }}
+            >
             </div>
         </div>
 
-        <div 
-            ref={containerRef} 
-            className={`map-container relative border rounded-lg overflow-hidden d-block w-100 ${isFullscreen ? 'map-h-fullscreen' : 'map-h-default'}`}
-        >
-        </div>
-        
-        {/* Legend */}
-        <div className="mt-3 pt-3 border-top">
-            <h4 className="text-sm fw-bold mb-3">Legende</h4>
-            <div className="d-grid grid-cols-auto-fill gap-2">
+        {/* Legend Sidebar */}
+        <div style={{
+            width: '280px',
+            borderLeft: '1px solid #e5e7eb',
+            backgroundColor: '#f9fafb',
+            overflow: 'auto',
+            padding: '16px',
+            display: 'flex',
+            flexDirection: 'column'
+        }}>
+            <h4 style={{ 
+                fontSize: '14px', 
+                fontWeight: '700', 
+                marginBottom: '12px', 
+                color: '#1f2937',
+                margin: '0 0 16px 0'
+            }}>Fragen & Farben</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                  {Array.from(new Set(filteredMaps.map(f => f.properties.question_id))).map(qId => {
                     const color = questionColorMap.get(qId) || COLORS[0];
                     const questionLabel = questionLabels[qId] || qId;
                     return (
-                        <div key={qId} className="d-flex align-center gap-2 text-sm">
+                        <div key={qId} style={{
+                            display: 'flex',
+                            gap: '10px',
+                            padding: '10px',
+                            backgroundColor: '#fff',
+                            borderRadius: '6px',
+                            border: '1px solid #e5e7eb'
+                        }}>
                             <div 
-                                className="legend-color-box"
                                 style={{ 
-                                    backgroundColor: color, 
-                                    borderColor: color
+                                    backgroundColor: color,
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '4px',
+                                    flexShrink: 0
                                 }} 
                             />
-                            <span className="whitespace-nowrap overflow-hidden text-ellipsis" title={questionLabel}>{questionLabel}</span>
+                            <span style={{
+                                fontSize: '13px',
+                                color: '#374151',
+                                lineHeight: '1.5',
+                                wordBreak: 'break-word'
+                            }}>{questionLabel}</span>
                         </div>
                     );
                 })}
             </div>
         </div>
-        
-        {debugInfo && (
-             <div className="debug-info-box">
-                 {debugInfo}
-             </div>
-        )}
       </div>
     );
 };
