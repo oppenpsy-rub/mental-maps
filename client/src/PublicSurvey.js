@@ -67,6 +67,8 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
   const [consentChecked, setConsentChecked] = useState(false);
   const [languageChanged, setLanguageChanged] = useState(false);
   const [allResponses, setAllResponses] = useState({});
+  const [surveyCompleted, setSurveyCompleted] = useState(false);
+  const [completionParticipantCode, setCompletionParticipantCode] = useState('');
 
   // Helper function to check if a question should be shown based on filters
   const shouldShowQuestion = (question, responses = allResponses) => {
@@ -148,6 +150,14 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
         config.showQuestionProgress = true;
       }
 
+      if (config.completionMode !== 'redirect') {
+        config.completionMode = 'page';
+      }
+
+      if (typeof config.completionRedirectUrl !== 'string') {
+        config.completionRedirectUrl = '';
+      }
+
       console.log('Normalized config in PublicSurvey:', config);
       
       if (response.data.requiresAccessCode && !accessCode) {
@@ -175,6 +185,8 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
       console.log('=== SETTING STUDY DATA ===');
       const studyData = { ...response.data, config };
       setStudy(studyData);
+      setSurveyCompleted(false);
+      setCompletionParticipantCode('');
       const questionsFromConfig = Array.isArray(config.questions) ? config.questions : [];
       setQuestions(questionsFromConfig);
       if (questionsFromConfig.length > 0) {
@@ -254,7 +266,23 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
     // Lade Studie mit dem neuen Zugangsschlüssel - useEffect wird durch setAccessCode getriggert
   };
 
-  const handleNextQuestion = (currentResponses = allResponses) => {
+  const handleSurveyCompletion = (finalParticipantCode) => {
+    const completionMode = study?.config?.completionMode === 'redirect' ? 'redirect' : 'page';
+    const redirectUrl = (study?.config?.completionRedirectUrl || '').trim();
+
+    if (completionMode === 'redirect' && redirectUrl) {
+      const resolvedUrl = redirectUrl.replace('{participantCode}', encodeURIComponent(finalParticipantCode || ''));
+      window.location.assign(resolvedUrl);
+      return;
+    }
+
+    setCompletionParticipantCode(finalParticipantCode || participantCode || '');
+    setSurveyCompleted(true);
+    setPolygons([]);
+    window.clearAllPolygons && window.clearAllPolygons();
+  };
+
+  const handleNextQuestion = (currentResponses = allResponses, finalParticipantCode = participantCode) => {
     let nextIndex = currentQuestionIndex + 1;
     
     // Skip questions that shouldn't be shown based on filters
@@ -271,64 +299,7 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
       setPolygons([]);
       setAnswer(null);
     } else {
-      // Use a more user-friendly completion message instead of alert
-      const completionMessage = `Umfrage abgeschlossen! Ihr Teilnehmer-Code: ${participantCode}`;
-      
-      // Create a custom modal instead of browser alert
-      const modal = document.createElement('div');
-      modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-      `;
-      
-      const content = document.createElement('div');
-      content.style.cssText = `
-        background: white;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        text-align: center;
-        max-width: 400px;
-        width: 90%;
-      `;
-      
-      content.innerHTML = `
-        <h2 style="color: #28a745; margin-bottom: 20px;">${t('survey_complete')}</h2>
-        <p style="margin-bottom: 20px; font-size: 16px;">${t('thank_you')}</p>
-        <p style="margin-bottom: 20px; font-weight: bold; font-size: 18px; color: #007bff;">
-          ${t('participant_code')}: ${participantCode}
-        </p>
-        <button id="closeModal" style="
-          background: #007bff;
-          color: white;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 5px;
-          cursor: pointer;
-          font-size: 16px;
-        ">OK</button>
-      `;
-      
-      modal.appendChild(content);
-      document.body.appendChild(modal);
-      
-      // Close modal when clicking OK or outside
-      const closeModal = () => {
-        document.body.removeChild(modal);
-      };
-      
-      document.getElementById('closeModal').onclick = closeModal;
-      modal.onclick = (e) => {
-        if (e.target === modal) closeModal();
-      };
+      handleSurveyCompletion(finalParticipantCode);
     }
   };
 
@@ -454,7 +425,7 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
       if (isPreview) {
         console.log('Preview Mode: Skipping save. Payload:', payload);
         await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
-        handleNextQuestion(updatedResponses);
+        handleNextQuestion(updatedResponses, currentParticipantCode);
         return;
       }
 
@@ -462,7 +433,7 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
       const response = await axios.post('/api/responses', payload);
       console.log('✅ Antwort gespeichert:', response.data);
       
-      handleNextQuestion(updatedResponses);
+      handleNextQuestion(updatedResponses, currentParticipantCode);
     } catch (error) {
       console.error('❌ Fehler beim Speichern:', error.response?.data || error.message);
       const errorMsg = error.response?.data?.message || error.message || 'Fehler beim Speichern der Antwort. Bitte versuchen Sie es erneut.';
@@ -530,6 +501,31 @@ function PublicSurvey({ studyId, accessCode: propAccessCode, setAccessCode: prop
               {t('continue')}
             </button>
           </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (surveyCompleted) {
+    return (
+      <div className="d-flex flex-column justify-center align-center vh-100 p-3 bg-light">
+        <div className="card p-5 shadow-lg max-w-400 w-100 text-center">
+          <h1 className="mb-3" style={{ color: '#28a745' }}>{t('survey_complete')}</h1>
+          <p className="mb-4 text-muted">{t('thank_you')}</p>
+          {completionParticipantCode && (
+            <div className="mb-4 p-3" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+              <div style={{ fontSize: '14px', color: '#6c757d', marginBottom: '6px' }}>{t('participant_code')}</div>
+              <div style={{ fontWeight: 'bold', fontSize: '18px', color: '#2c3e50' }}>{completionParticipantCode}</div>
+            </div>
+          )}
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              window.location.href = '/';
+            }}
+          >
+            {t('back')}
+          </button>
         </div>
       </div>
     );

@@ -37,6 +37,8 @@ function StudyManagerUnified() {
     config: {
       language: 'de',
       showQuestionProgress: true,
+      completionMode: 'page',
+      completionRedirectUrl: '',
       questions: [],
       mapConfig: {
         center: [48.8566, 2.3522], // Paris als Standard
@@ -178,6 +180,14 @@ function StudyManagerUnified() {
       if (study.config.showQuestionProgress === undefined) {
         study.config.showQuestionProgress = true;
       }
+
+      if (study.config.completionMode !== 'redirect') {
+        study.config.completionMode = 'page';
+      }
+
+      if (typeof study.config.completionRedirectUrl !== 'string') {
+        study.config.completionRedirectUrl = '';
+      }
       
       setEditingStudy(study);
       setActiveTab('edit');
@@ -224,6 +234,8 @@ function StudyManagerUnified() {
         config: {
           language: 'de',
           showQuestionProgress: true,
+          completionMode: 'page',
+          completionRedirectUrl: '',
           questions: [],
           mapConfig: {
             center: [48.8566, 2.3522],
@@ -954,6 +966,89 @@ function StudyManagerUnified() {
                     ))}
                   </select>
                 </div>
+              </div>
+
+              <div style={{ marginTop: '20px', display: 'grid', gap: '15px' }}>
+                <div style={{ padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={newStudy.config.showQuestionProgress !== false}
+                      onChange={(e) => setNewStudy({
+                        ...newStudy,
+                        config: {
+                          ...newStudy.config,
+                          showQuestionProgress: e.target.checked
+                        }
+                      })}
+                      style={{ marginTop: '4px', transform: 'scale(1.2)' }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: 'bold', color: '#495057', marginBottom: '4px' }}>
+                        {t('show_question_progress')}
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#6c757d' }}>
+                        {t('show_question_progress_description')}
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#495057' }}>
+                    {t('completion_mode')}:
+                  </label>
+                  <select
+                    value={newStudy.config.completionMode || 'page'}
+                    onChange={(e) => setNewStudy({
+                      ...newStudy,
+                      config: {
+                        ...newStudy.config,
+                        completionMode: e.target.value
+                      }
+                    })}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #ced4da',
+                      borderRadius: '6px',
+                      fontSize: '16px'
+                    }}
+                  >
+                    <option value="page">{t('completion_mode_page')}</option>
+                    <option value="redirect">{t('completion_mode_redirect')}</option>
+                  </select>
+                </div>
+
+                {newStudy.config.completionMode === 'redirect' && (
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#495057' }}>
+                      {t('completion_redirect_url')}:
+                    </label>
+                    <input
+                      type="url"
+                      value={newStudy.config.completionRedirectUrl || ''}
+                      onChange={(e) => setNewStudy({
+                        ...newStudy,
+                        config: {
+                          ...newStudy.config,
+                          completionRedirectUrl: e.target.value
+                        }
+                      })}
+                      placeholder={t('completion_redirect_url_placeholder')}
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #ced4da',
+                        borderRadius: '6px',
+                        fontSize: '16px'
+                      }}
+                    />
+                    <div style={{ marginTop: '6px', fontSize: '13px', color: '#6c757d' }}>
+                      {t('completion_redirect_url_description')}
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
@@ -1693,6 +1788,64 @@ function StudyManagerUnified() {
                 </label>
               </div>
 
+              <div style={{ marginTop: '20px', display: 'grid', gap: '15px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#495057' }}>
+                    {t('completion_mode')}:
+                  </label>
+                  <select
+                    value={editingStudy.config.completionMode || 'page'}
+                    onChange={(e) => setEditingStudy({
+                      ...editingStudy,
+                      config: {
+                        ...editingStudy.config,
+                        completionMode: e.target.value
+                      }
+                    })}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #ced4da',
+                      borderRadius: '6px',
+                      fontSize: '16px'
+                    }}
+                  >
+                    <option value="page">{t('completion_mode_page')}</option>
+                    <option value="redirect">{t('completion_mode_redirect')}</option>
+                  </select>
+                </div>
+
+                {editingStudy.config.completionMode === 'redirect' && (
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#495057' }}>
+                      {t('completion_redirect_url')}:
+                    </label>
+                    <input
+                      type="url"
+                      value={editingStudy.config.completionRedirectUrl || ''}
+                      onChange={(e) => setEditingStudy({
+                        ...editingStudy,
+                        config: {
+                          ...editingStudy.config,
+                          completionRedirectUrl: e.target.value
+                        }
+                      })}
+                      placeholder={t('completion_redirect_url_placeholder')}
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #ced4da',
+                        borderRadius: '6px',
+                        fontSize: '16px'
+                      }}
+                    />
+                    <div style={{ marginTop: '6px', fontSize: '13px', color: '#6c757d' }}>
+                      {t('completion_redirect_url_description')}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
                   <input
@@ -1709,10 +1862,10 @@ function StudyManagerUnified() {
                   />
                   <div>
                     <div style={{ fontWeight: 'bold', color: '#495057', marginBottom: '4px' }}>
-                      Fragenfortschritt anzeigen
+                      {t('show_question_progress')}
                     </div>
                     <div style={{ fontSize: '14px', color: '#6c757d' }}>
-                      Zeigt die Anzeige "Question X of Y" im Umfrage-Header an oder blendet sie aus.
+                      {t('show_question_progress_description')}
                     </div>
                   </div>
                 </label>
