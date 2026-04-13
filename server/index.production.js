@@ -705,6 +705,117 @@ app.get('/api/export/:studyId/participants', async (req, res) => {
   }
 });
 
+app.get('/api/export/:studyId/pdf', async (req, res) => {
+  try {
+    const PDFDocument = require('pdfkit');
+    const studyId = req.params.studyId;
+
+    const [studyRows] = await pool.execute(
+      'SELECT id, title, description, created_at FROM studies WHERE id = ?',
+      [studyId]
+    );
+
+    if (studyRows.length === 0) {
+      return res.status(404).json({ error: 'Studie nicht gefunden' });
+    }
+
+    const study = studyRows[0];
+
+    const [rows] = await pool.execute(
+      `SELECT r.id, r.response_data, r.created_at, p.participant_code
+       FROM responses r
+       JOIN participants p ON r.participant_id = p.id
+       WHERE r.study_id = ?
+       ORDER BY p.participant_code ASC, r.created_at ASC`,
+      [studyId]
+    );
+
+    const doc = new PDFDocument({
+      size: 'A4',
+      margins: { top: 50, bottom: 50, left: 50, right: 50 },
+      bufferPages: true
+    });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="study_${studyId}_responses.pdf"`);
+    doc.pipe(res);
+
+    doc.fontSize(20).font('Helvetica-Bold').text('VOICE Mental Maps', { align: 'center' });
+    doc.moveDown(0.4);
+    doc.fontSize(14).font('Helvetica').text(study.title || `Studie ${study.id}`, { align: 'center' });
+    doc.moveDown(0.6);
+    doc.fontSize(10).font('Helvetica').text(`Exportdatum: ${new Date().toLocaleDateString('de-DE')}`, { align: 'center' });
+    doc.moveDown(1.5);
+
+    doc.fontSize(11).font('Helvetica-Bold').text('Zusammenfassung', { underline: true });
+    doc.moveDown(0.4);
+    doc.fontSize(10).font('Helvetica');
+    doc.text(`Antworten gesamt: ${rows.length}`);
+    doc.text(`Studie erstellt: ${new Date(study.created_at).toLocaleDateString('de-DE')}`);
+    if (study.description) {
+      doc.moveDown(0.5);
+      doc.text(`Beschreibung: ${study.description}`);
+    }
+    doc.moveDown(1.2);
+
+    if (rows.length === 0) {
+      doc.fontSize(10).font('Helvetica-Oblique').fillColor('#777777').text('Keine Antworten vorhanden.');
+      doc.fillColor('#000000');
+    } else {
+      rows.forEach((row, index) => {
+        if (doc.y > 700) {
+          doc.addPage();
+        }
+
+        let parsedResponse = row.response_data;
+        if (typeof parsedResponse === 'string') {
+          try {
+            parsedResponse = JSON.parse(parsedResponse);
+          } catch (error) {
+            // Keep original string if parsing fails.
+          }
+        }
+
+        const responseText =
+          typeof parsedResponse === 'string'
+            ? parsedResponse
+            : JSON.stringify(parsedResponse, null, 2);
+
+        doc.fontSize(11).font('Helvetica-Bold').fillColor('#1f3a5f')
+          .text(`Antwort ${index + 1} - Teilnehmer: ${row.participant_code}`);
+        doc.fillColor('#000000');
+        doc.fontSize(9).font('Helvetica-Oblique')
+          .text(`Erstellt am: ${new Date(row.created_at).toLocaleString('de-DE')}`);
+        doc.moveDown(0.3);
+
+        doc.fontSize(10).font('Helvetica').text('Inhalt:', { continued: false });
+        doc.fontSize(9).font('Courier').text(responseText, {
+          width: 495,
+          align: 'left'
+        });
+        doc.moveDown(0.8);
+      });
+    }
+
+    const pages = doc.bufferedPageRange();
+    for (let i = 0; i < pages.count; i++) {
+      doc.switchToPage(i);
+      doc.fontSize(8).font('Helvetica').fillColor('#999999').text(
+        `Seite ${i + 1} von ${pages.count}`,
+        50,
+        doc.page.height - 40,
+        { align: 'center', width: doc.page.width - 100 }
+      );
+      doc.fillColor('#000000');
+    }
+
+    doc.end();
+  } catch (error) {
+    console.error('Fehler beim PDF-Export:', error);
+    res.status(500).json({ error: 'Serverfehler beim PDF-Export' });
+  }
+});
+
 // Public study access
 app.get('/api/studies/:id/public', async (req, res) => {
   try {
